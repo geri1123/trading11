@@ -1,0 +1,43 @@
+/* @import "tailwindcss"; */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+ html , body{
+  background-color: #171719;
+ }
+ .tradingview-widget-container {
+  width: 100%;
+  height: 100%;
+}
+
+@media (max-width: 1024px) {
+  .tradingview-widget-container {
+    height: 300px; /* Adjust height for smaller screens */
+  }
+}
+.chart-scrollbar::-webkit-scrollbar {
+    width: 7px; 
+    height: 7px; 
+  }
+  
+  .chart-scrollbar::-webkit-scrollbar-track {
+    background: #333; 
+    border-radius: 5px; 
+  }
+  .chart-scrollbar::-webkit-scrollbar-corner {
+    background: #1F1F21; /* Match the scrollbar track color */
+}
+ 
+  .chart-scrollbar::-webkit-scrollbar-thumb {
+    background: #888; 
+    border-radius: 5px; 
+  }
+  input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+  display: none;
+}
+ 
+  .chart-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #555; 
+  }
