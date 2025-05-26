@@ -1,18 +1,8 @@
+
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/Context/AuthContext";
 import { TradeProvider } from "@/Context/TradeContext";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
   title: "TREADING ELEVEN",
@@ -28,9 +18,9 @@ export default function RootLayout({
     <html lang="en">
       <body className="App bg-black-700">
         <AuthProvider>
-        <TradeProvider>
-        {children}
-        </TradeProvider>
+          <TradeProvider>
+            {children}
+          </TradeProvider>
         </AuthProvider>
       </body>
     </html>

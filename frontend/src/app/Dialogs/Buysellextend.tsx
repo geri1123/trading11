@@ -1,5 +1,6 @@
-import React, { useState, useEffect, RefObject } from 'react';
 
+import React, { useState, useEffect, RefObject } from 'react';
+import Image from 'next/image';
 
 // Define the SelectedData interface for type safety
 interface SelectedData {
@@ -12,13 +13,11 @@ interface SelectedData {
 }
 
 // Define the BuysellextendProps interface
-
 interface BuysellextendProps {
   onClose: () => void;
   dropdownref: RefObject<HTMLDivElement | null>;
   data: SelectedData;
 }
-
 
 const Buysellextend: React.FC<BuysellextendProps> = ({ onClose, dropdownref, data }) => {
   const [touchStart, setTouchStart] = useState<number>(0);
@@ -97,7 +96,7 @@ const Buysellextend: React.FC<BuysellextendProps> = ({ onClose, dropdownref, dat
             id="margin-decrease"
             onClick={() => handleValueChange('value1', 'decrease')}
           >
-            <img src="/Images/Icons/minus.svg" alt="minus-icon" />
+            <Image src="/Images/Icons/minus.svg" alt="minus-icon" width={20} height={20} />
           </button>
           <input
             type="text"
@@ -110,7 +109,7 @@ const Buysellextend: React.FC<BuysellextendProps> = ({ onClose, dropdownref, dat
             className="border-none flex items-center justify-center  w-1/6 outline-none"
             onClick={() => handleValueChange('value1', 'increase')}
           >
-            <img src="/Images/Icons/plus.svg" alt="plus-icon" />
+            <Image src="/Images/Icons/plus.svg" alt="plus-icon" width={20} height={20} />
           </button>
         </div>
       )}
@@ -217,7 +216,7 @@ const Buysellextend: React.FC<BuysellextendProps> = ({ onClose, dropdownref, dat
             id="margin-decrease"
             onClick={() => handleValueChange('value', 'decrease')}
           >
-            <img src="/Images/Icons/minus.svg" alt="minus-icon" />
+            <Image src="/Images/Icons/minus.svg" alt="minus-icon" width={20} height={20} />
           </button>
           <input
             type="text"
@@ -230,7 +229,7 @@ const Buysellextend: React.FC<BuysellextendProps> = ({ onClose, dropdownref, dat
             className="border-none flex items-center justify-center  w-1/6 outline-none"
             onClick={() => handleValueChange('value', 'increase')}
           >
-            <img src="/Images/Icons/plus.svg" alt="plus-icon" />
+            <Image src="/Images/Icons/plus.svg" alt="plus-icon" width={20} height={20} />
           </button>
         </div>
       </div>

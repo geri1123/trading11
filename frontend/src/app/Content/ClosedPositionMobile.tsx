@@ -1,8 +1,11 @@
+
+
 import React, { useState } from 'react';
+import Image from 'next/image';
 import { formatDate } from '@/Constants/date';
-// This type should match the data structure from your mapTradeToClosedTradeRow and ClosedPositionContent
+
 export interface ClosedTradeRow {
-   id: string | number;
+  id: string | number;
   instrument: string;
   side: string;
   size: number | string;
@@ -47,11 +50,11 @@ const ClosedPositionMobile: React.FC<ClosedPositionMobileProps> = ({ ClosedData 
   return (
     <div
       className="flex flex-col gap-2 chart-scrollbar
-        xsm:max-h-[calc(95vh-148px)]
-        sm:max-h-[calc(90vh-148px)]
+        xsm:max-h-[calc(69vh-148px)]
+        sm:max-h-[calc(80vh-140px)]
         xxsm:max-h-[calc(70vh-140px)]
-        md:max-h-[calc(90vh-148px)]
-        lg:max-h-[calc(90vh-148px)]
+        md:max-h-[calc(100vh-300px)]
+        lg:max-h-[calc(100vh-350px)]
         overflow-y-auto"
     >
       {/* Summary header for mobile */}
@@ -74,7 +77,7 @@ const ClosedPositionMobile: React.FC<ClosedPositionMobileProps> = ({ ClosedData 
         <div>
           <p className="text-xs font-medium text-white text-opacity-50">Profit/Loss</p>
           <div className="flex items-center gap-1.5 mt-3">
-            <img src="/Images/Icons/decrease.svg" alt="decrease-icon" />
+            <Image src="/Images/Icons/decrease.svg" alt="decrease-icon" width={12} height={12} />
             <p className="text-[10px] text-red-400 leading-none">-157.02</p>
           </div>
         </div>
@@ -91,21 +94,22 @@ const ClosedPositionMobile: React.FC<ClosedPositionMobileProps> = ({ ClosedData 
           </div>
         </div>
       </div>
-      {ClosedData.map((row , index) => (
+      {ClosedData.map((row) => (
         <div
-         key={row.id}
-         className="bg-black-700 rounded-2xl px-3 py-3">
+          key={row.id}
+          className="bg-black-700 rounded-2xl px-3 py-3"
+        >
           <div className="up flex justify-between">
             <div className="right flex gap-2">
               <div className="array ">
                 <div className="bg-black-200 rounded-lg">
-                <img
+                  <Image
                     onClick={() => handleOpen(row.id)}
-                    className={`p-1 transition-transform duration-300 ${
-                      openId === row.id && !Closing ? 'rotate-180' : ''
-                    }`}
+                    className={`p-1 transition-transform duration-300 ${openId === row.id && !Closing ? 'rotate-180' : ''}`}
                     src="/Images/Icons/chevron-down.svg"
                     alt="arrowdown.svg"
+                    width={16}
+                    height={16}
                   />
                 </div>
               </div>
@@ -134,7 +138,7 @@ const ClosedPositionMobile: React.FC<ClosedPositionMobileProps> = ({ ClosedData 
             </div>
             <div className="left flex items-center justify-center flex-col gap-2">
               <p className={'bg-green-800 flex py-1 bg-opacity-50 px-2 rounded-md text-green-200 text-xs'}>
-                <img src="/Images/Icons/increase.svg" alt="" /> {row.marginUsed}
+                <Image src="/Images/Icons/increase.svg" alt="" width={12} height={12} /> {row.marginUsed}
               </p>
               <div className="flex">
                 <p>Market</p>

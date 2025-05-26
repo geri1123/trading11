@@ -1,5 +1,7 @@
-import React from 'react';
 
+
+import React from 'react';
+import Image from 'next/image';
 import { formatDate } from '../Constants/date';
 
 export interface PendingTradeRow {
@@ -52,7 +54,7 @@ const PendingContent: React.FC<PendingContentProps> = ({ pendingData, loading })
             {/* Instrument and Image */}
             <div className="sticky bg-black-700 left-0 w-40 flex items-center gap-2 justify-center px-4">
               <div>
-                <img src="/Images/Icons/qube.svg" alt="qube.svg" />
+                <Image src="/Images/Icons/qube.svg" alt="qube.svg" width={16} height={16} />
               </div>
               <div className="text-white text-[12px] font-semibold">{row.instrument}</div>
             </div>
@@ -105,10 +107,10 @@ const PendingContent: React.FC<PendingContentProps> = ({ pendingData, loading })
             {/* Action Buttons */}
             <div className="w-32 sticky bg-black-700 right-0 flex items-center justify-center gap-3">
               <div className="p-1 bg-black-300 rounded">
-                <img src="/Images/Icons/edit.svg" alt="edit.svg" />
+                <Image src="/Images/Icons/edit.svg" alt="edit.svg" width={16} height={16} />
               </div>
               <div className="p-1 bg-black-300 rounded">
-                <img src="/Images/Icons/delete-trade.svg" alt="delete-trade.svg" />
+                <Image src="/Images/Icons/delete-trade.svg" alt="delete-trade.svg" width={16} height={16} />
               </div>
             </div>
           </div>

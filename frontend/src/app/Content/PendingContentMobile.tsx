@@ -1,13 +1,7 @@
-import React, { useState } from 'react';
-import { useToggleShow } from '@/UseToggleState/UseToggleShow';
 
-// Import your SVGs or use require if not using next/image
-import decreaseicon from '../../Images/icons/decrease.svg';
-import increaseicon from '../../Images/icons/increase.svg';
-import edit from '../../Images/icons/edit.svg';
-import deletetrade from '../../Images/icons/delete-trade.svg';
-import arrowdown from '../../Images/icons/chevron-down.svg';
-import { useTradeContext } from '@/Context/TradeContext';
+import React, { useState } from 'react';
+import Image from 'next/image';
+import { useToggleShow } from '@/UseToggleState/UseToggleShow';
 
 export interface PendingTradeRow {
   instrument: string;
@@ -25,20 +19,17 @@ export interface PendingTradeRow {
 }
 interface PendingContentMobileProps {
   pendingData: PendingTradeRow[];
-  loading:boolean;
+  loading: boolean;
 }
 
-const PendingContentMobile: React.FC<PendingContentMobileProps> = ({ pendingData,loading }) => {
+const PendingContentMobile: React.FC<PendingContentMobileProps> = ({ pendingData }) => {
   const [openId, setOpenId] = useState<string | number | null>(null);
-  const [pending] = useState(true);
   const [activeDialog, setActiveDialog] = useState<string | null>(null);
-  const [selectedData, setSelectedData] = useState<PendingTradeRow | null>(null);
-  const { isOpen, toggleDropdown, closeDropdown, dropdownref, setIsOpen, isClosing } = useToggleShow();
+  const { isOpen, toggleDropdown, dropdownref, isClosing } = useToggleShow();
   const [Closing, setClosing] = useState(false);
-const {  handleCloseTrade}=useTradeContext();
-  const handleOpenDialog = (type: string, rowData: PendingTradeRow) => {
+
+  const handleOpenDialog = (type: string) => {
     setActiveDialog(type);
-    setSelectedData(rowData);
     toggleDropdown();
   };
 
@@ -63,19 +54,21 @@ const {  handleCloseTrade}=useTradeContext();
         md:max-h-[calc(100vh-300px)]
         lg:max-h-[calc(100vh-350px)]
       ">
-      {pendingData.map((row , index) => (
+      {pendingData.map((row, index) => (
         <div key={index} className='bg-black-700 rounded-2xl px-3 py-3'>
           <div className='up flex justify-between'>
             <div className='right flex gap-2'>
               <div className="array">
                 <div className='bg-black-200 rounded-lg'>
-                  <img
+                  <Image
                     onClick={() => handleOpen(index)}
                     className={`p-1 transition-transform duration-300 ${
                       openId === index && !Closing ? 'rotate-180' : ''
                     }`}
                     src="/Images/Icons/chevron-down.svg"
                     alt="arrowdown.svg"
+                    width={16}
+                    height={16}
                   />
                 </div>
               </div>
@@ -91,7 +84,6 @@ const {  handleCloseTrade}=useTradeContext();
                   <div className='w-[1px] h-full bg-gray-200'></div>
                   <div className='flex items-center justify-center gap-1.5'>
                     <p className='text-[11px] text-gray-400 font-semibold'>Size</p>
-                    {/* <p className={`text-[11px] text-center ${openId === index ? "hidden" : "flex"}`}>{row.entryMarket}</p> */}
                   </div>
                 </div>
               </div>
@@ -130,15 +122,6 @@ const {  handleCloseTrade}=useTradeContext();
               <div className='flex justify-between'>
                 <div className='flex flex-col items-start gap-[3px]'>
                   <p className='text-sm font-semibold p-0 m-0 font-base text-gray-400'>Exposure</p>
-                  {/* <p className={`${Number(row.ProfitLoss) > 0 ? "text-green-300" : "text-red-500"} flex items-center text-sm`}>
-                    {Number(row.ProfitLoss) > 0 ? (
-                      <img src={increaseicon} alt="increase.svg" />
-                    ) : (
-                      <img src="/Images/Icons/decrease.svg" alt="decrease.svg" />
-                    )}
-                    {row.ProfitLoss}
-                  </p> */}
-                  {/* <p className='text-xs text-white font-semibold'>Order ID : {row.orderId}</p> */}
                 </div>
                 <div className='flex items-start flex-col gap-1'>
                   <p className='text-sm font-semibold'><span className='text-gray-400'>SL</span> : {row.stopLoss}</p>
@@ -148,14 +131,14 @@ const {  handleCloseTrade}=useTradeContext();
               {/* bottom */}
               <div className='grid grid-cols-3 gap-3'>
                 <button
-                  onClick={() => handleOpenDialog('modify', row)}
+                  onClick={() => handleOpenDialog('modify')}
                   className='bg-black-200 flex item-center gap-2 justify-center py-3 rounded-lg'
                 >
-                  <img src="/Images/Icons/edit.svg" alt="edit.svg" /> <p className='text-[10px]'>Edit</p>
+                  <Image src="/Images/Icons/edit.svg" alt="edit.svg" width={16} height={16} /> <p className='text-[10px]'>Edit</p>
                 </button>
                 <div></div>
-                <button  className='bg-black-200 flex gap-2 item-center justify-center py-3 rounded-lg'>
-                  <img src="/Images/Icons/delete-trade.svg" alt="delete-trade.svg" /> <p className='text-[10px]'>Full close</p>
+                <button className='bg-black-200 flex gap-2 item-center justify-center py-3 rounded-lg'>
+                  <Image src="/Images/Icons/delete-trade.svg" alt="delete-trade.svg" width={16} height={16} /> <p className='text-[10px]'>Full close</p>
                 </button>
               </div>
             </div>

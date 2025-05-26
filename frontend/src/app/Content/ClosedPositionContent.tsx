@@ -1,6 +1,10 @@
-import React from 'react';
 
+
+
+import React from 'react';
+import Image from 'next/image';
 import { formatDate } from '@/Constants/date';
+
 export interface ClosedTradeRow {
   id: number|string;
   instrument: string;
@@ -53,16 +57,15 @@ const ClosedPositionContent: React.FC<ClosedPositionContentProps> = ({ closedDat
           <div className="w-32 px-4 text-white text-[13px] font-normal">PositionId</div>
         </div>
         {/* Data Rows */}
-        {closedData.map((row, index) => (
+        {closedData.map((row) => (
           <div
-            // key={index}
             key={row.id}
             className="flex items-center py-1 border-b border-gray-500 hover:bg-black-300"
           >
             {/* Instrument and Image */}
             <div className="w-40 flex sticky left-0 bg-black-700 items-center gap-2 justify-center px-4">
               <div>
-                <img src="Images/Icons/qube.svg" alt="qube.svg" />
+                <Image src="/Images/Icons/qube.svg" alt="qube.svg" width={16} height={16} />
               </div>
               <div className="text-white text-[12px] font-semibold">{row.instrument}</div>
             </div>

@@ -1,21 +1,15 @@
+
 import React, { useEffect, useRef, useState, MouseEvent, KeyboardEvent } from 'react';
 
 import Transition from '@/Context/Transition';
-
+import Image from 'next/image';
 import Stats from '@/Components/TradingStats/Stats';
-interface NavbarProps {
-  align?: string;
-}
 
-const Navbar: React.FC<NavbarProps> = ({ align }) => {
-  
+const Navbar: React.FC = () => {
+
   const [dropdownOpen, setDropdownOpen] = useState<boolean>(false);
   const trigger = useRef<HTMLButtonElement | null>(null);
   const dropdown = useRef<HTMLDivElement | null>(null);
-
-  const handleLogout = () => {
-    window.location.href = "/login";
-  };
 
   useEffect(() => {
     const clickHandler = (event: MouseEvent | globalThis.MouseEvent) => {
@@ -49,7 +43,7 @@ const Navbar: React.FC<NavbarProps> = ({ align }) => {
       <div className="flex items-center lg:justify-between xl:justify-between gap-2 w-full lg:gap-4 xxl:gap-4 xl:gap-4">
         <div className="rounded w-[100px] lg:w-36 p-[3px]">
           <a href="#">
-            <img src='/logo.png'  alt="site_logo" className="w-full" />
+            <Image src='/logo.png' alt="site_logo" className="w-full" width={100} height={32} />
           </a>
         </div>
       </div>
@@ -69,7 +63,7 @@ const Navbar: React.FC<NavbarProps> = ({ align }) => {
           <button
             className="flex items-center justify-center p-4 border-none outline-none cursor-pointer w-max rounded-2xl bg-black-700 h-[50px]"
           >
-            <img src="/Images/Icons/wifi.svg"alt="wifi-icon" />
+            <Image src="/Images/Icons/wifi.svg" alt="wifi-icon" width={24} height={24} />
           </button>
           <button
             className="flex h-[50px] items-center justify-center p-4 border-none outline-none cursor-pointer rounded-2xl bg-black-700"
@@ -79,17 +73,19 @@ const Navbar: React.FC<NavbarProps> = ({ align }) => {
             aria-expanded={dropdownOpen}
             aria-haspopup="true"
           >
-            <img
+            <Image
               src="/Images/Icons/setting.svg"
               alt="settings-icon"
               className="w-10/12"
+              width={24}
+              height={24}
             />
           </button>
           <a
             href="login"
             className="flex h-[50px] items-center justify-center p-4 border-none outline-none cursor-pointer rounded-2xl bg-black-700"
           >
-            <img src="/Images/Icons/logout.svg" alt="logout-icon" />
+            <Image src="/Images/Icons/logout.svg" alt="logout-icon" width={24} height={24} />
           </a>
         </div>
       </div>
@@ -113,41 +109,41 @@ const Navbar: React.FC<NavbarProps> = ({ align }) => {
           <button className="flex items-center justify-between w-full p-2 bg-black-300 rounded-xl">
             <div className="flex items-center gap-2.5">
               <div className="grid p-3 bg-violet-10 rounded-xl place-content-center">
-                <img src="/Images/Icons/theme-icon.svg" alt="theme-icon" />
+                <Image src="/Images/Icons/theme-icon.svg" alt="theme-icon" width={20} height={20} />
               </div>
               <p className="text-xs leading-none text-white">Default Theme</p>
             </div>
             <div className="flex items-center gap-1 p-1 bg-contentBg rounded-xl">
               <div className="w-full flex bg-violet-10 items-center gap-1.5 p-2 bg-themeViolet rounded-lg text-white text-xs">
                 Dark
-                <img src="/Images/Icons/moon.svg" alt="moon-icon" />
+                <Image src="/Images/Icons/moon.svg" alt="moon-icon" width={16} height={16} />
               </div>
               <div className="w-full flex items-center gap-1.5 p-2 bg-transparent rounded-lg text-white text-xs">
                 Light
-                <img src="/Images/Icons/sun.svg" alt="sun-icon" />
+                <Image src="/Images/Icons/sun.svg" alt="sun-icon" width={16} height={16} />
               </div>
             </div>
           </button>
           <button className="flex items-center bg-black-300 justify-between w-full p-2 bg-contentBg rounded-xl">
             <div className="flex items-center gap-2.5">
               <div className="grid p-3 bg-violet-10 rounded-xl place-content-center">
-                <img src="/Images/Icons/support-icon.svg" alt="support-icon.svg-icon" />
+                <Image src="/Images/Icons/support-icon.svg" alt="support-icon.svg-icon" width={20} height={20} />
               </div>
               <p className="text-xs leading-none text-white">Support</p>
             </div>
             <div>
-              <img src="/Images/Icons/chevron-right.svg" alt="right_icon" />
+              <Image src="/Images/Icons/chevron-right.svg" alt="right_icon" width={14} height={14} />
             </div>
           </button>
           <button className="flex items-center bg-black-300 justify-between w-full p-2 bg-contentBg rounded-xl">
             <div className="flex items-center gap-2.5">
               <div className="grid bg-violet-10 p-3 bg-themeViolet rounded-xl place-content-center">
-                <img src='/Images/Icons/profile-icon.svg' alt="profile-icon.svg-icon" />
+                <Image src='/Images/Icons/profile-icon.svg' alt="profile-icon.svg-icon" width={20} height={20} />
               </div>
               <p className="text-xs leading-none text-white">Profile</p>
             </div>
             <div>
-              <img src='/Images/Icons/chevron-right.svg' alt="right_icon" />
+              <Image src='/Images/Icons/chevron-right.svg' alt="right_icon" width={14} height={14} />
             </div>
           </button>
           <a
@@ -156,7 +152,7 @@ const Navbar: React.FC<NavbarProps> = ({ align }) => {
           >
             <div className="flex items-center gap-2.5">
               <div className="grid bg-violet-10 p-3 bg-themeViolet rounded-xl place-content-center">
-                <img src='/Images/Icons/logout.svg' alt="logout.svg-icon" />
+                <Image src='/Images/Icons/logout.svg' alt="logout.svg-icon" width={20} height={20} />
               </div>
               <p className="text-xs leading-none text-white">Logout</p>
             </div>

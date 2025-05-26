@@ -1,8 +1,7 @@
+
 import axios from 'axios';
 
-
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://elevenfundingapi-f91e4cb9118d.herokuapp.com';
-
 
 export type TradeStatus = 'OPEN' | 'PENDING' | 'CLOSED';
 
@@ -16,7 +15,6 @@ export interface Trade {
   createdAt: string;
   stopLoss: number;
   takeProfit: number;
-  
 }
 
 export interface TradeResponse {
@@ -77,11 +75,13 @@ export const createTrade = async (tradeData: CreateTradeData): Promise<Trade> =>
     );
 
     return response.data;
-  } catch (error: any) {
+  } catch (error: unknown) {
     if (axios.isAxiosError(error) && error.response) {
       console.error('API error:', error.response.status, error.response.data);
-    } else {
+    } else if (error instanceof Error) {
       console.error('Axios error:', error.message);
+    } else {
+      console.error('An unknown error occurred:', error);
     }
     throw error;
   }

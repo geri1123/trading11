@@ -1,5 +1,6 @@
-import React, { useState, TouchEvent } from 'react';
 
+import React, { useState, TouchEvent } from 'react';
+import Image from 'next/image';
 import type { PositionTradeRow } from '@/Content/PositionContent';
 
 export interface PartialDialogProps {
@@ -70,7 +71,7 @@ const PartialDialog: React.FC<PartialDialogProps> = ({ data, onClose }) => {
       </div>
       <div className={`w-full p-1 border-1 rounded-lg bg-black-700 flex items-center justify-between ${data.side === "Buy" ? "border-green-400" : "border-red-400"}`}>
         <button className="border-none px-2 outline-none" id="margin-decrease" onClick={decreaseValue}>
-          <img src="/Images/Icons/minus.svg" alt="minus-icon" />
+          <Image src="/Images/Icons/minus.svg" alt="minus-icon" width={20} height={20} />
         </button>
 
         <input
@@ -82,7 +83,7 @@ const PartialDialog: React.FC<PartialDialogProps> = ({ data, onClose }) => {
         />
 
         <button className="border-none px-2 outline-none" onClick={increaseValue}>
-          <img src="/Images/Icons/plus.svg" alt="plus-icon" />
+          <Image src="/Images/Icons/plus.svg" alt="plus-icon" width={20} height={20} />
         </button>
       </div>
       <div className='w-full h-[1px] bg-white opacity-50'></div>

@@ -1,8 +1,11 @@
+
 import React, { useState } from 'react';
+import Image from 'next/image';
 import { useToggleShow } from '@/UseToggleState/UseToggleShow';
 import { formatDate } from '@/Constants/date';
 import ModifyDialog from '@/Dialogs/ModifyDialog';
 import { useTradeContext } from '@/Context/TradeContext';
+
 export interface PositionTradeRow {
   id: string | number;
   instrument: string;
@@ -22,17 +25,17 @@ export interface PositionTradeRow {
 
 interface PositionContentMobileProps {
   positionData: PositionTradeRow[];
-    loading: boolean;
+  loading: boolean;
 }
 
-const PositionContentMobile: React.FC<PositionContentMobileProps> = ({ positionData, loading }) => {
+const PositionContentMobile: React.FC<PositionContentMobileProps> = ({ positionData }) => {
   const [openId, setOpenId] = useState<string | number | null>(null);
   const [activeDialog, setActiveDialog] = useState<string | null>(null);
   const [selectedData, setSelectedData] = useState<PositionTradeRow | null>(null);
-  const { isOpen, toggleDropdown, closeDropdown, dropdownref, isClosing, setIsOpen } = useToggleShow();
+  const { isOpen, toggleDropdown, closeDropdown, dropdownref, isClosing } = useToggleShow();
   const [Closing, setClosing] = useState(false);
-  const { handleCloseTrade}=useTradeContext();
-  
+  const { handleCloseTrade } = useTradeContext();
+
   const handleOpenDialog = (type: string, rowData: PositionTradeRow) => {
     setActiveDialog(type);
     setSelectedData(rowData);
@@ -66,13 +69,15 @@ const PositionContentMobile: React.FC<PositionContentMobileProps> = ({ positionD
             <div className='right flex gap-2'>
               <div className="array ">
                 <div className='bg-black-200 rounded-lg p-1'>
-                  <img
+                  <Image
                     onClick={() => handleOpen(row.id)}
                     className={`transition-transform duration-300 ${
                       openId === row.id && !Closing ? 'rotate-180' : ''
                     }`}
                     src="/Images/Icons/chevron-down.svg"
                     alt="arrowdown.svg"
+                    width={16}
+                    height={16}
                   />
                 </div>
               </div>
@@ -131,9 +136,9 @@ const PositionContentMobile: React.FC<PositionContentMobileProps> = ({ positionD
                   <p className='text-sm font-semibold p-0 m-0 font-base text-gray-400'>Profit/Loss</p>
                   <p className={`${Number(row.ProfitLoss) > 0 ? "text-green-300" : "text-red-500"} flex items-center text-sm`}>
                     {Number(row.ProfitLoss) > 0 ? (
-                      <img src="/Images/Icons/increase.svg" alt="increase.svg" />
+                      <Image src="/Images/Icons/increase.svg" alt="increase.svg" width={16} height={16} />
                     ) : (
-                      <img src="/Images/Icons/decrease.svg" alt="decrease.svg" />
+                      <Image src="/Images/Icons/decrease.svg" alt="decrease.svg" width={16} height={16} />
                     )}
                     {row.ProfitLoss}
                   </p>
@@ -147,29 +152,29 @@ const PositionContentMobile: React.FC<PositionContentMobileProps> = ({ positionD
               {/* bottom */}
               <div className='grid grid-cols-3 gap-3'>
                 <button onClick={() => handleOpenDialog('modify', row)} className='bg-black-200 flex item-center gap-2 justify-center py-3 rounded-lg'>
-                  <img src="/Images/Icons/edit.svg" alt="edit.svg" /> <p className='text-[10px]'>Edit</p>
+                  <Image src="/Images/Icons/edit.svg" alt="edit.svg" width={16} height={16} /> <p className='text-[10px]'>Edit</p>
                 </button>
                 <button onClick={() => handleOpenDialog('partial', row)} className='bg-black-200 flex gap-2 item-center justify-center py-3 rounded-lg'>
-                  <img src="/Images/Icons/close-trade.svg" alt="partial-close.svg" /> <p className='text-[10px]'>Partial close</p>
+                  <Image src="/Images/Icons/close-trade.svg" alt="partial-close.svg" width={16} height={16} /> <p className='text-[10px]'>Partial close</p>
                 </button>
                 <button onClick={()=>handleCloseTrade(row.id)} className='bg-black-200 flex gap-2 item-center justify-center py-3 rounded-lg'>
-                  <img src="/Images/Icons/delete-trade.svg" alt="delete-trade.svg" /> <p className='text-[10px]'>Full close</p>
+                  <Image src="/Images/Icons/delete-trade.svg" alt="delete-trade.svg" width={16} height={16} /> <p className='text-[10px]'>Full close</p>
                 </button>
               </div>
             </div>
           </div>
         </div>
       ))}
-   {isOpen && activeDialog === 'modify' && (
-  <div className={`fixed h-screen top-0 left-0 w-full h-full bg-black-700 bg-opacity-70 flex items-center justify-center z-50 ${isClosing ? 'animate-fadeOut' : 'animate-fadeIn'}`}>
-    <div
-      ref={dropdownref}
-      className={`z-50 fixed bottom-0 left-0 md:relative xsm:bottom-0 xsm:left-0 lg:relative ${isClosing ? "lg:animate-slideUp animate-slideUpSmall" : "lg:animate-slideDown animate-slideDownSmall"}`}
-    >
-      <ModifyDialog data={selectedData} onClose={closeDropdown} />
-    </div>
-  </div>
-)}
+      {isOpen && activeDialog === 'modify' && (
+        <div className={`fixed h-screen top-0 left-0 w-full h-full bg-black-700 bg-opacity-70 flex items-center justify-center z-50 ${isClosing ? 'animate-fadeOut' : 'animate-fadeIn'}`}>
+          <div
+            ref={dropdownref}
+            className={`z-50 fixed bottom-0 left-0 md:relative xsm:bottom-0 xsm:left-0 lg:relative ${isClosing ? "lg:animate-slideUp animate-slideUpSmall" : "lg:animate-slideDown animate-slideDownSmall"}`}
+          >
+            <ModifyDialog data={selectedData} onClose={closeDropdown} />
+          </div>
+        </div>
+      )}
       {isOpen && activeDialog === 'partial' && (
         <div className={`fixed h-screen top-0 left-0 w-full h-full bg-black-700 bg-opacity-70 flex items-center justify-center z-50 ${isClosing ? 'animate-fadeOut' : 'animate-fadeIn'}`}>
           <div ref={dropdownref} className={`z-50 fixed bottom-0 left-0 md:relative xsm:bottom-0 xsm:left-0 lg:relative ${isClosing ? "lg:animate-slideUp animate-slideUpSmall" : "lg:animate-slideDown animate-slideDownSmall"}`}>

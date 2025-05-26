@@ -1,8 +1,8 @@
-import React, { useCallback, useState } from 'react';
-import { formatDate } from '@/Constants/date';
-import { toast } from 'react-toastify';
-import { useToggleShow } from '@/UseToggleState/UseToggleShow';
 
+import React, { useState } from 'react';
+import Image from 'next/image';
+import { formatDate } from '@/Constants/date';
+import { useToggleShow } from '@/UseToggleState/UseToggleShow';
 
 import ModifyDialog from '@/Dialogs/ModifyDialog';
 import PartialDialog from '@/Dialogs/PartialDialog';
@@ -27,7 +27,6 @@ export interface PositionTradeRow {
 
 interface PositionContentProps {
   positionData: PositionTradeRow[];
- 
   loading: boolean;
 }
 
@@ -35,18 +34,13 @@ const PositionContent: React.FC<PositionContentProps> = ({ positionData, loading
   const [activeDialog, setActiveDialog] = useState<string | null>(null);
   const [selectedData, setSelectedData] = useState<PositionTradeRow | null>(null);
   const { isOpen, toggleDropdown, closeDropdown, dropdownref, isClosing } = useToggleShow();
-   const {  handleCloseTrade}=useTradeContext();
-  
-  const token = typeof window !== 'undefined' ? localStorage.getItem("token") : null;
+  const { handleCloseTrade } = useTradeContext();
 
- 
   const handleOpenDialog = (type: string, rowData: PositionTradeRow) => {
     setActiveDialog(type);
     setSelectedData(rowData);
     toggleDropdown();
   };
-
-  
 
   if (loading) return <div>Loading...</div>;
 
@@ -76,7 +70,7 @@ const PositionContent: React.FC<PositionContentProps> = ({ positionData, loading
             {/* Instrument and Image */}
             <div className="w-40 sticky left-0 bg-black-700 flex items-center gap-2 justify-center px-4">
               <div>
-                <img src="/Images/Icons/qube.svg" alt="qube.svg" />
+                <Image src="/Images/Icons/qube.svg" alt="qube.svg" width={16} height={16} />
               </div>
               <div className="text-white text-[12px] font-semibold">{row.instrument}</div>
             </div>
@@ -133,16 +127,18 @@ const PositionContent: React.FC<PositionContentProps> = ({ positionData, loading
             {/* Action Buttons */}
             <div className="w-32 flex sticky bg-black-700 right-0 items-center justify-center gap-3">
               <div className="p-1 cursor-pointer bg-black-300 rounded">
-                <img onClick={() => handleOpenDialog('Modify', row)} src="/Images/Icons/edit.svg"  alt="edit.svg" />
+                <Image onClick={() => handleOpenDialog('Modify', row)} src="/Images/Icons/edit.svg" alt="edit.svg" width={16} height={16} />
               </div>
               <div className="p-1 cursor-pointer bg-black-300 rounded">
-                <img onClick={() => handleOpenDialog('partial', row)} src="/Images/Icons/close-trade.svg" alt="close-trade.svg" />
+                <Image onClick={() => handleOpenDialog('partial', row)} src="/Images/Icons/close-trade.svg" alt="close-trade.svg" width={16} height={16} />
               </div>
               <div className="p-1 bg-black-300 rounded">
-                <img
+                <Image
                   src="/Images/Icons/delete-trade.svg"
                   alt="delete-trade.svg"
                   className="cursor-pointer"
+                  width={16}
+                  height={16}
                   onClick={() => handleCloseTrade(row.id)}
                 />
               </div>
@@ -170,3 +166,4 @@ const PositionContent: React.FC<PositionContentProps> = ({ positionData, loading
 };
 
 export default PositionContent;
+

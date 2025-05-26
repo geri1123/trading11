@@ -92,7 +92,7 @@ export const TradeProvider: React.FC<{children: React.ReactNode}> = ({ children 
     });
     setTrades(data.content || []);
     setLoading(false);
-  }, [activeTab]);
+  }, [activeTab ]);
 
   const refreshData = useCallback(async () => {
     await fetchCounts();
