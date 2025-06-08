@@ -1,0 +1,150 @@
+import React from 'react';
+import Image from 'next/image';
+import { formatDate } from '../Constants/date';
+import { useTradeContext } from './TradeContext'; // Adjust path as needed
+
+const PendingContent: React.FC = () => {
+  const { trades, loading, error, fetchTrades } = useTradeContext();
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-white text-lg">Loading...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-red-500 text-lg">Error: {error}</div>
+      </div>
+    );
+  }
+
+  if (trades.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-gray-400 text-lg">No pending positions found</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="overflow-x-auto overflow-y-auto h-[100%] chart-scrollbar">
+      <div className="min-w-max hidden lg:block bg-black-700 text-gray-300">
+        {/* Header */}
+        <div className="flex items-center py-1 border-b border-gray-700 bg-black-700 sticky top-0 z-10">
+          <div className="w-40 sticky left-0 bg-black-700 px-4 text-white text-[13px] font-normal">Instrument</div>
+          <div className="w-20 px-4 text-white text-[13px] font-normal">Side</div>
+          <div className="w-20 px-4 text-white text-[13px] font-normal">Size</div>
+          <div className="w-40 px-4 text-white text-[13px] font-normal">Entry Price</div>
+          <div className="w-32 px-4 text-white text-[13px] font-normal">Stop Loss</div>
+          <div className="w-32 px-4 text-white text-[13px] font-normal">Take Profit</div>
+          <div className="w-24 px-4 text-white text-[13px] font-normal">Margin</div>
+          <div className="w-32 px-4 text-white text-[13px] font-normal">Exposure</div>
+          <div className="w-50 px-4 text-white text-[13px] font-normal">Opened At (EEA)</div>
+          <div className="w-20 px-4 text-white text-[13px] font-normal">Fee</div>
+          <div className="w-20 px-4 text-white text-[13px] font-normal">Swap</div>
+          <div className="w-32 px-4 text-white text-[13px] font-normal">Profit Loss</div>
+          <div className="w-32 px-4 text-white text-[13px] font-normal sticky bg-black-700 right-0">Action</div>
+        </div>
+
+        {/* Data Rows */}
+        {trades.map((row, index) => (
+          <div
+            key={row.positionId || index}
+            className="flex items-center py-1 border-b border-gray-500 hover:bg-black-300"
+          >
+            {/* Instrument and Image */}
+            <div className="sticky bg-black-700 left-0 w-40 flex items-center gap-2 justify-center px-4">
+              <div>
+                <Image src="/Images/Icons/qube.svg" alt="qube.svg" width={16} height={16} />
+              </div>
+              <div className="text-white text-[12px] font-semibold">{row.instrument}</div>
+            </div>
+            
+            {/* Side */}
+            <div className="w-20 flex items-center justify-center px-4">
+              <span className={`text-[15px] font-semibold ${
+                row.side === "BUY" ? "text-green-500" : "text-red-500"
+              }`}>
+                {row.side}
+              </span>
+            </div>
+            
+            {/* Size */}
+            <div className="w-20 flex items-center justify-center text-white font-semibold text-[13px] px-4">
+              {row.lotSize?.toFixed(2) || '0.00'}
+            </div>
+            
+            {/* Entry Price */}
+            <div className="w-40 flex items-center justify-center text-[10px] font-semibold text-white px-4">
+              {row.entryPrice?.toFixed(5) || '0.00000'}
+            </div>
+            
+            {/* Stop Loss */}
+            <div className="w-32 flex items-center justify-center text-[13px] font-semibold text-white px-4">
+              {row.stopLoss?.toFixed(5) || '0.00000'}
+            </div>
+            
+            {/* Take Profit */}
+            <div className="w-32 flex items-center justify-center text-[13px] font-semibold text-white px-4">
+              {row.takeProfit?.toFixed(5) || '0.00000'}
+            </div>
+            
+            {/* Margin */}
+            <div className="w-24 flex items-center justify-center text-[13px] font-semibold text-white px-4">
+              {row.margin?.toFixed(2) || '0.00'}
+            </div>
+            
+            {/* Exposure */}
+            <div className="w-32 flex items-center justify-center text-[13px] font-semibold text-white px-4">
+              {row.exposure?.toFixed(2) || '0.00'}
+            </div>
+            
+            {/* Opened At */}
+            <div className="w-50 flex items-center justify-center text-[13px] font-semibold text-white px-4">
+              {formatDate(row.openedAt)}
+            </div>
+            
+            {/* Fee */}
+            <div className="w-20 flex items-center justify-center text-[13px] font-semibold text-white px-4">
+              {row.fee?.toFixed(2) || '0.00'}
+            </div>
+            
+            {/* Swap */}
+            <div className="w-20 flex items-center justify-center text-[13px] font-semibold text-white px-4">
+              {row.swap?.toFixed(2) || '0.00'}
+            </div>
+            
+            {/* Profit/Loss */}
+            <div className={`w-32 flex items-center justify-center text-[13px] font-semibold px-4 ${
+              (row.profitLoss || 0) < 0 ? 'text-red-500' : 'text-green-500'
+            }`}>
+              {row.profitLoss?.toFixed(2) || '0.00'}
+            </div>
+            
+            {/* Action Buttons */}
+            <div className="w-32 sticky bg-black-700 right-0 flex items-center justify-center gap-3">
+              <button 
+                className="p-1 bg-black-300 rounded hover:bg-black-200 transition-colors"
+                onClick={() => {/* Handle edit */}}
+              >
+                <Image src="/Images/Icons/edit.svg" alt="edit.svg" width={16} height={16} />
+              </button>
+              <button 
+                className="p-1 bg-black-300 rounded hover:bg-black-200 transition-colors"
+                onClick={() => {/* Handle delete */}}
+              >
+                <Image src="/Images/Icons/delete-trade.svg" alt="delete-trade.svg" width={16} height={16} />
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+export default PendingContent;

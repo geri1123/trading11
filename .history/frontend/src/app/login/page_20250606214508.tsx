@@ -1,0 +1,352 @@
+// "use client";
+// import React, { useState, ChangeEvent, FormEvent } from 'react';
+// import { useRouter } from "next/navigation";
+// import Link from 'next/link';
+// import Image from 'next/image';
+
+// interface FormData {
+//   accountNumber: string;
+//   password: string;
+// }
+
+// interface FormError {
+//   accountNumber: string;
+//   password: string;
+// }
+
+// const Login: React.FC = () => {
+//   const router = useRouter();
+//   const [isVisible, setIsVisible] = useState<boolean>(false);
+//   const [formData, setFormData] = useState<FormData>({ accountNumber: '', password: '' });
+//   const [error, setError] = useState<FormError>({ accountNumber: '', password: '' });
+//   const [loading, setLoading] = useState<boolean>(false);
+
+//   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+//     const { name, value } = e.target;
+//     setFormData((prev) => ({ ...prev, [name]: value }));
+//   };
+
+//   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+//     e.preventDefault();
+//     setLoading(true);
+//     setError({ accountNumber: '', password: '' });
+
+//     setTimeout(async () => {
+//       let formValid = true;
+//       const newErrors: FormError = { accountNumber: '', password: '' };
+
+//       if (!formData.accountNumber) {
+//         newErrors.accountNumber = 'Please fill in the account number';
+//         formValid = false;
+//       }
+//       if (!formData.password) {
+//         newErrors.password = 'Please fill in the password';
+//         formValid = false;
+//       }
+
+//       if (!formValid) {
+//         setError(newErrors);
+//         setLoading(false);
+//         return;
+//       }
+
+//       try {
+        
+//         const response = await fetch('/api/login', {
+//           method: "POST",
+//           headers: { "Content-Type": "application/json" },
+//           body: JSON.stringify({
+//             username: formData.accountNumber,
+//             password: formData.password,
+//           }),
+//         });
+
+//         const data = await response.json();
+
+//         if (!response.ok || !data.success) {
+//           setError({ ...newErrors, password: data.message || "Invalid credentials" });
+//           setLoading(false);
+//           return;
+//         }
+
+       
+//         router.replace("/");
+//       } catch {
+//         setError({ ...newErrors, accountNumber: "Login failed" });
+//         setLoading(false);
+//       }
+//     }, 1000);
+//   };
+
+//   return (
+//     <main className="flex items-center justify-center h-screen gap-5 p-5">
+//       <div className="w-full max-w-[600px] bg-black-300 p-3 lg:p-10 rounded-2xl">
+//         {/* Logo */}
+//         <div className="flex items-center justify-center">
+//           <Link href="/">
+//             <Image src="/logo.png" alt="site_logo" className="w-[240px]" width={240} height={60} priority />
+//           </Link>
+//         </div>
+
+//         <div className="my-4">
+//           <h3 className="text-3xl text-center text-white">Trade Login</h3>
+//           <p className="pt-4 text-sm text-center text-white text-opacity-40">
+//             Enter your account number and password to log in to the trading platform
+//           </p>
+//         </div>
+
+//         <div className="border-t border-gray-700 my-4"></div>
+
+//         <form className="my-4 space-y-4" onSubmit={handleSubmit}>
+//           <div>
+//             <div
+//               className={
+//                 error.accountNumber
+//                   ? 'relative w-full px-4 py-3 border border-red-400 bg-bodyBg rounded-xl'
+//                   : 'relative w-full px-4 py-3 border border-white bg-bodyBg rounded-xl'
+//               }
+//             >
+//               <input
+//                 type="text"
+//                 name="accountNumber"
+//                 onChange={handleChange}
+//                 value={formData.accountNumber}
+//                 placeholder="Account Number"
+//                 className="w-full text-sm text-white bg-transparent border-none outline-none focus:border-transparent focus:ring-0 placeholder:text-opacity-50 font-candor-medium"
+//               />
+//               <div className="absolute -translate-y-1/2 top-1/2 right-4">
+//                 <Image src="/Images/Icons/mail-icon.svg" alt="mail_icon" width={20} height={20} />
+//               </div>
+//             </div>
+//             {error.accountNumber && (
+//               <p className="text-red-500 text-start ml-1 text-sm">{error.accountNumber}</p>
+//             )}
+//           </div>
+
+//           <div>
+//             <div
+//               className={
+//                 error.password
+//                   ? 'relative w-full px-4 py-3 border border-red-400 bg-bodyBg rounded-xl'
+//                   : 'relative w-full px-4 py-3 border border-white bg-bodyBg rounded-xl'
+//               }
+//             >
+//               <input
+//                 type={isVisible ? "text" : "password"}
+//                 onChange={handleChange}
+//                 name="password"
+//                 value={formData.password}
+//                 placeholder="Password"
+//                 className="w-full text-sm text-white bg-transparent border-none outline-none focus:border-transparent focus:ring-0 placeholder:text-opacity-50 font-candor-medium appearance-none"
+//               />
+//               <div
+//                 onClick={() => setIsVisible(!isVisible)}
+//                 className="absolute -translate-y-1/2 top-1/2 right-4 cursor-pointer"
+//                 role="button"
+//                 aria-label={isVisible ? "Hide password" : "Show password"}
+//                 tabIndex={0}
+//                 onKeyDown={(e) => {
+//                   if (e.key === "Enter" || e.key === " ") {
+//                     setIsVisible(!isVisible);
+//                   }
+//                 }}
+//               >
+//                 <Image src="/Images/Icons/eye-slash.svg" alt="eye_icon" width={20} height={20} />
+//               </div>
+//             </div>
+//             {error.password && (
+//               <p className="text-red-500 ml-1 text-sm text-start">{error.password}</p>
+//             )}
+//           </div>
+
+//           <button
+//             type="submit"
+//             className="w-full p-4 text-base text-white duration-200 bg-violet-700 rounded-xl font-candor-medium active:scale-95"
+//             disabled={loading}
+//           >
+//             {loading ? "Loading..." : "Login"}
+//           </button>
+//         </form>
+//       </div>
+//     </main>
+//   );
+// };
+
+// export default Login;
+"use client";
+import React, { useState, ChangeEvent, FormEvent } from 'react';
+import { useRouter } from "next/navigation";
+import Link from 'next/link';
+import Image from 'next/image';
+
+interface FormData {
+  username: string;
+  password: string;
+}
+
+interface FormError {
+  username: string;
+  password: string;
+}
+
+const Login: React.FC = () => {
+  const router = useRouter();
+  const [isVisible, setIsVisible] = useState<boolean>(false);
+  const [formData, setFormData] = useState<FormData>({ username: '', password: '' });
+  const [error, setError] = useState<FormError>({ username: '', password: '' });
+  const [loading, setLoading] = useState<boolean>(false);
+
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setLoading(true);
+    setError({ username: '', password: '' });
+
+    // Validate before making request
+    let formValid = true;
+    const newErrors: FormError = { username: '', password: '' };
+
+    if (!formData.username) {
+      newErrors.username = 'Please fill in the account number';
+      formValid = false;
+    }
+    if (!formData.password) {
+      newErrors.password = 'Please fill in the password';
+      formValid = false;
+    }
+
+    if (!formValid) {
+      setError(newErrors);
+      setLoading(false);
+      return;
+    }
+
+    try {
+      
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/auth/cookie/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          username: formData.username,
+          password: formData.password,
+        }),
+        credentials: "include" 
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError({ ...newErrors, password: data.message || "Invalid credentials" });
+        setLoading(false);
+        return;
+      }
+
+     
+
+      router.replace("/");
+    } catch {
+      setError({ ...newErrors, username: "Login failed" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <main className="flex items-center justify-center h-screen gap-5 p-5">
+      <div className="w-full max-w-[600px] bg-black-300 p-3 lg:p-10 rounded-2xl">
+        {/* Logo */}
+        <div className="flex items-center justify-center">
+          <Link href="/">
+            <Image src="/logo.png" alt="site_logo" className="w-[240px]" width={240} height={60} priority />
+          </Link>
+        </div>
+
+        <div className="my-4">
+          <h3 className="text-3xl text-center text-white">Trade Login</h3>
+          <p className="pt-4 text-sm text-center text-white text-opacity-40">
+            Enter your account number and password to log in to the trading platform
+          </p>
+        </div>
+
+        <div className="border-t border-gray-700 my-4"></div>
+
+        <form className="my-4 space-y-4" onSubmit={handleSubmit}>
+          <div>
+            <div
+              className={
+                error.username
+                  ? 'relative w-full px-4 py-3 border border-red-400 bg-bodyBg rounded-xl'
+                  : 'relative w-full px-4 py-3 border border-white bg-bodyBg rounded-xl'
+              }
+            >
+              <input
+                type="text"
+                name="username"
+                onChange={handleChange}
+                value={formData.username}
+                placeholder="Account Number"
+                className="w-full text-sm text-white bg-transparent border-none outline-none focus:border-transparent focus:ring-0 placeholder:text-opacity-50 font-candor-medium"
+              />
+              <div className="absolute -translate-y-1/2 top-1/2 right-4">
+                <Image src="/Images/Icons/mail-icon.svg" alt="mail_icon" width={20} height={20} />
+              </div>
+            </div>
+            {error.username && (
+              <p className="text-red-500 text-start ml-1 text-sm">{error.username}</p>
+            )}
+          </div>
+
+          <div>
+            <div
+              className={
+                error.password
+                  ? 'relative w-full px-4 py-3 border border-red-400 bg-bodyBg rounded-xl'
+                  : 'relative w-full px-4 py-3 border border-white bg-bodyBg rounded-xl'
+              }
+            >
+              <input
+                type={isVisible ? "text" : "password"}
+                onChange={handleChange}
+                name="password"
+                value={formData.password}
+                placeholder="Password"
+                className="w-full text-sm text-white bg-transparent border-none outline-none focus:border-transparent focus:ring-0 placeholder:text-opacity-50 font-candor-medium appearance-none"
+              />
+              <div
+                onClick={() => setIsVisible(!isVisible)}
+                className="absolute -translate-y-1/2 top-1/2 right-4 cursor-pointer"
+                role="button"
+                aria-label={isVisible ? "Hide password" : "Show password"}
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    setIsVisible(!isVisible);
+                  }
+                }}
+              >
+                <Image src="/Images/Icons/eye-slash.svg" alt="eye_icon" width={20} height={20} />
+              </div>
+            </div>
+            {error.password && (
+              <p className="text-red-500 ml-1 text-sm text-start">{error.password}</p>
+            )}
+          </div>
+
+          <button
+            type="submit"
+            className="w-full p-4 text-base text-white duration-200 bg-violet-700 rounded-xl font-candor-medium active:scale-95"
+            disabled={loading}
+          >
+            {loading ? "Loading..." : "Login"}
+          </button>
+        </form>
+      </div>
+    </main>
+  );
+};
+
+export default Login;
