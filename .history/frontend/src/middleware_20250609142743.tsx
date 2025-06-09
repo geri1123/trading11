@@ -18,21 +18,25 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  
+  // If not logged in, redirect to /login
   if (!token) {
     const url = request.nextUrl.clone();
     url.pathname = '/login';
     return NextResponse.redirect(url);
   }
 
-  
+  // Otherwise, allow
   return NextResponse.next();
 }
 
 
 export const config = {
   matcher: [
-   
+    // Exclude:
+    // - _next/static (Next.js static files)
+    // - _next/image (Next.js image optimization)
+    // - favicon.ico
+    // - everything inside /public (like /Images, /Icons, etc.)
     "/((?!_next/static|_next/image|favicon.ico|Images/|Icons/|api/.*).*)",
   ],
 };
