@@ -102,7 +102,7 @@ const client = new Client({
   webSocketFactory: () => 
     
     //  new WebSocket(`wss://elevenfundingapi-f91e4cb9118d.herokuapp.com/ws/forex?token=${token}`),
-    new WebSocket(`${process.env.NEXT_PUBLIC_API_BASE_URL}/ws/forex`),
+    new WebSocket(`${process.env.NEXT_PUBLIC_API_BASE_URL}/ws/forex?token=${token}`),
       connectHeaders: {
     Authorization: `Bearer ${token}`
   },

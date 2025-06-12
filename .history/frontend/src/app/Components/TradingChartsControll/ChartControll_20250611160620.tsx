@@ -102,15 +102,10 @@ const client = new Client({
   webSocketFactory: () => 
     
     //  new WebSocket(`wss://elevenfundingapi-f91e4cb9118d.herokuapp.com/ws/forex?token=${token}`),
-    new WebSocket(`${process.env.NEXT_PUBLIC_API_BASE_URL}/ws/forex`),
-      connectHeaders: {
+    ew WebSocket(`wss://elevenfundingapi-f91e4cb9118d.herokuapp.com/ws/forex?token=${token}`),
+  connectHeaders: {
     Authorization: `Bearer ${token}`
   },
-  //   new WebSocket(`wss://elevenfundingapi-f91e4cb9118d.herokuapp.com/ws/forex`),
-  
-  //   connectHeaders: {
-  //   Authorization: `Bearer ${token}`
-  // },
   reconnectDelay: 5000,
   onConnect: () => {
     allPairs.forEach((pair) => {
