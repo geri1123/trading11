@@ -5,7 +5,7 @@ import * as React from 'react';
 import { useEffect, useState, useRef } from 'react';
 import { Client } from '@stomp/stompjs';
 import Image from 'next/image';
-import SockJS from "sockjs-client";
+
 import Cookies from 'js-cookie';
 
 const allPairs = [
@@ -90,7 +90,14 @@ const ChartControll: React.FC<ChartControllProps> = ({ onSelect }) => {
       }
     }
   }, [liveData, filteredPairs, onSelect, hasAutoSelected]);
+
   useEffect(() => {
+    setHasAutoSelected(false);
+    setSelectedPair(null);
+  }, [selectedCategory, searchTerm]);
+
+  
+useEffect(() => {
     const token = Cookies.get("token");
     if (!token) return;
 
@@ -119,6 +126,8 @@ const ChartControll: React.FC<ChartControllProps> = ({ onSelect }) => {
       stompRef.current?.deactivate();
     };
   }, []);
+ 
+
   
   const handlePairSelect = (pair: string) => {
     const data = liveData[pair];

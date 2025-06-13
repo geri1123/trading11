@@ -17,8 +17,9 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-toastify": "^11.0.5",
+    
     "react-transition-group": "^4.4.5",
-  
+    
     "sockjs-client": "^1.6.1"
   },
   "devDependencies": {
@@ -29,7 +30,6 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/react-transition-group": "^4.4.12",
-    "@types/sockjs-client": "^1.5.4",
     "autoprefixer": "^10.4.21",
     "eslint": "^9",
     "eslint-config-next": "15.3.2",

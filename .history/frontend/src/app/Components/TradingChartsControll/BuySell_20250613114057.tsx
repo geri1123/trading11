@@ -21,28 +21,28 @@ interface BuySellProps {
   data?: SelectedData | null; 
 }
 
-const DEFAULT_SELECTED: SelectedData = {
-  pair: 'GBP/USD',
-  ask: 1.10537,
-  bid: 1.10532,
-  spread: 0.00005,
-  dayHigh: 1.11000,
-  dayLow: 1.10000,
-};
+// const DEFAULT_SELECTED: SelectedData = {
+//   pair: 'GBP/USD',
+//   ask: 1.10537,
+//   bid: 1.10532,
+//   spread: 0.00005,
+//   dayHigh: 1.11000,
+//   dayLow: 1.10000,
+// };
 
 const BuySell: React.FC<BuySellProps> = ({ data  }) => {
  
   // const [selectedData, setSelectedData] = useState<SelectedData>(data ?? DEFAULT_SELECTED);
-  const selectedData = data ?? DEFAULT_SELECTED;
+  const [selectedData, setSelectedData] = useState<SelectedData>(?data);
   const [value, setValue] = useState<number>(0.01);
   const [activeDialog, setActiveDialog] = useState<DialogType>(null);
   const { isOpen, toggleDropdown, closeDropdown, dropdownref, isClosing } = useToggleShow();
 
-  // useEffect(() => {
-  //   if (data) {
-  //     setSelectedData(data);
-  //   }
-  // }, [data]);
+  useEffect(() => {
+    if (data) {
+      setSelectedData(data);
+    }
+  }, [data]);
 
   useEffect(() => {
     setValue(0.01);

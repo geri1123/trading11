@@ -90,7 +90,13 @@ const ChartControll: React.FC<ChartControllProps> = ({ onSelect }) => {
       }
     }
   }, [liveData, filteredPairs, onSelect, hasAutoSelected]);
+
   useEffect(() => {
+    setHasAutoSelected(false);
+    setSelectedPair(null);
+  }, [selectedCategory, searchTerm]);
+
+    useEffect(() => {
     const token = Cookies.get("token");
     if (!token) return;
 
@@ -119,6 +125,8 @@ const ChartControll: React.FC<ChartControllProps> = ({ onSelect }) => {
       stompRef.current?.deactivate();
     };
   }, []);
+ 
+
   
   const handlePairSelect = (pair: string) => {
     const data = liveData[pair];

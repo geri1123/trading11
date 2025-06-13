@@ -23,9 +23,9 @@ const ClosedPositionContent: React.FC = () => {
       <div className="overflow-x-auto overflow-y-auto max-h-[150px] chart-scrollbar">
         <table className="w-full min-w-max">
           {/* Header */}
-          <thead className=" border-b border-gray-700 bg-gray-700 sticky top-0 z-10">
+          <thead className="bg-gray-800  border-b border-gray-700 sticky top-0 z-10">
             <tr>
-              <th className="sticky left-0  z-20 px-2 py-2 text-left">
+              <th className="sticky left-0 bg-gray-800 z-20 px-2 py-2 text-left">
                 <div className="text-gray-200 text-xs font-semibold whitespace-nowrap">
                   Instrument
                 </div>
@@ -121,7 +121,7 @@ const ClosedPositionContent: React.FC = () => {
                 className="hover:bg-gray-800 transition-colors duration-150"
               >
                 {/* Instrument */}
-                <td className="sticky left-0  hover:bg-gray-800 z-5 px-2 py-2">
+                <td className="sticky left-0 bg-gray-900 hover:bg-gray-800 z-5 px-2 py-2">
                   <div className="flex items-center gap-2">
                     <div className="flex-shrink-0">
                       <Image 

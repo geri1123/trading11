@@ -23,7 +23,7 @@ const ClosedPositionContent: React.FC = () => {
       <div className="overflow-x-auto overflow-y-auto max-h-[150px] chart-scrollbar">
         <table className="w-full min-w-max">
           {/* Header */}
-          <thead className=" border-b border-gray-700 bg-gray-700 sticky top-0 z-10">
+          <thead className=" border-b border-gray-700 sticky top-0 z-10">
             <tr>
               <th className="sticky left-0  z-20 px-2 py-2 text-left">
                 <div className="text-gray-200 text-xs font-semibold whitespace-nowrap">

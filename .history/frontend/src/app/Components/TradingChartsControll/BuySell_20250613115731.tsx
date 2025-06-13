@@ -38,11 +38,11 @@ const BuySell: React.FC<BuySellProps> = ({ data  }) => {
   const [activeDialog, setActiveDialog] = useState<DialogType>(null);
   const { isOpen, toggleDropdown, closeDropdown, dropdownref, isClosing } = useToggleShow();
 
-  // useEffect(() => {
-  //   if (data) {
-  //     setSelectedData(data);
-  //   }
-  // }, [data]);
+  useEffect(() => {
+    if (data) {
+      setSelectedData(data);
+    }
+  }, [data]);
 
   useEffect(() => {
     setValue(0.01);

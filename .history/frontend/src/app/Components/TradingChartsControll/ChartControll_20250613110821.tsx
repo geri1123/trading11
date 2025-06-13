@@ -5,7 +5,7 @@ import * as React from 'react';
 import { useEffect, useState, useRef } from 'react';
 import { Client } from '@stomp/stompjs';
 import Image from 'next/image';
-import SockJS from "sockjs-client";
+
 import Cookies from 'js-cookie';
 
 const allPairs = [
@@ -90,35 +90,42 @@ const ChartControll: React.FC<ChartControllProps> = ({ onSelect }) => {
       }
     }
   }, [liveData, filteredPairs, onSelect, hasAutoSelected]);
-  useEffect(() => {
-    const token = Cookies.get("token");
-    if (!token) return;
 
-    const client = new Client({
-      webSocketFactory: () =>
-          new SockJS(`${process.env.NEXT_PUBLIC_API_BASE_URL}/ws/forex?token=${token}`),
-      reconnectDelay: 5000,
-      onConnect: () => {
-        allPairs.forEach((pair) => {
+  useEffect(() => {
+    setHasAutoSelected(false);
+    setSelectedPair(null);
+  }, [selectedCategory, searchTerm]);
+
+  
+const token = Cookies.get("token");
+// wss://elevenfundingapi-f91e4cb9118d.herokuapp.com/ws/forex
+const client = new Client({
+  webSocketFactory: () => 
+    
+    //  new WebSocket(`wss://elevenfundingapi-f91e4cb9118d.herokuapp.com/ws/forex?token=${token}`),
+    new WebSocket(`${process.env.NEXT_PUBLIC_API_BASE_URL}/ws/forex`),
+    
+  //   new WebSocket(`wss://elevenfundingapi-f91e4cb9118d.herokuapp.com/ws/forex`),
+  
+  //   connectHeaders: {
+  //   Authorization: `Bearer ${token}`
+  // },
+  reconnectDelay: 5000,
+  onConnect: () => {
+    allPairs.forEach((pair) => {
           const topic = `/topic/forex.${pair.toLowerCase().replace("/", ".")}`;
           client.subscribe(topic, (message) => {
             const data: LivePairData = JSON.parse(message.body);
             setLiveData((prev) => ({ ...prev, [pair]: data }));
           });
         });
-      },
-      onStompError: (frame) => {
-        console.error("❌ STOMP error:", frame.headers["message"]);
-      },
-    });
+  },
+  onStompError: (frame) => {
+    console.error("❌ STOMP error:", frame.headers["message"]);
+  }
+});
+ 
 
-    client.activate();
-    stompRef.current = client;
-
-    return () => {
-      stompRef.current?.deactivate();
-    };
-  }, []);
   
   const handlePairSelect = (pair: string) => {
     const data = liveData[pair];

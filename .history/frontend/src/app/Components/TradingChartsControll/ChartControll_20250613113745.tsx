@@ -70,27 +70,27 @@ const ChartControll: React.FC<ChartControllProps> = ({ onSelect }) => {
         );
 
   // Auto-select first available data after loading (only once)
-  useEffect(() => {
-    if (!hasAutoSelected && Object.keys(liveData).length > 0) {
-      for (const pair of filteredPairs) {
-        const data = liveData[pair];
-        if (data && typeof data.a === "number" && typeof data.b === "number" && typeof data.spread === "number") {
-          setSelectedPair(pair);
-          setHasAutoSelected(true);
-          onSelect({
-            pair,
-            ask: data.a,
-            bid: data.b,
-            spread: data.spread,
-            dayHigh: 0, 
-            dayLow: 0   
-          });
-          break;
-        }
-      }
-    }
-  }, [liveData, filteredPairs, onSelect, hasAutoSelected]);
-  useEffect(() => {
+  // useEffect(() => {
+  //   if (!hasAutoSelected && Object.keys(liveData).length > 0) {
+  //     for (const pair of filteredPairs) {
+  //       const data = liveData[pair];
+  //       if (data && typeof data.a === "number" && typeof data.b === "number" && typeof data.spread === "number") {
+  //         setSelectedPair(pair);
+  //         setHasAutoSelected(true);
+  //         onSelect({
+  //           pair,
+  //           ask: data.a,
+  //           bid: data.b,
+  //           spread: data.spread,
+  //           dayHigh: 0, 
+  //           dayLow: 0   
+  //         });
+  //         break;
+  //       }
+  //     }
+  //   }
+  // }, [liveData, filteredPairs, onSelect, hasAutoSelected]);
+ useEffect(() => {
     const token = Cookies.get("token");
     if (!token) return;
 
@@ -119,6 +119,7 @@ const ChartControll: React.FC<ChartControllProps> = ({ onSelect }) => {
       stompRef.current?.deactivate();
     };
   }, []);
+
   
   const handlePairSelect = (pair: string) => {
     const data = liveData[pair];
