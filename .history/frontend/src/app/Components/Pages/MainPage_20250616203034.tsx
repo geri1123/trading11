@@ -1,0 +1,217 @@
+"use client";
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { Client } from '@stomp/stompjs';
+import SockJS from "sockjs-client";
+import Cookies from 'js-cookie';
+
+import Navbar from "@/Components/Navbar/Navbar";
+import Menu from "@/Components/Navbar/Menu";
+import Stats from "@/Components/TradingStats/Stats";
+import Trades from "@/Components/TradingChartsControll/Trades";
+import dynamic from "next/dynamic";
+import ChartControll from "@/Components/TradingChartsControll/ChartControll";
+import BuySell from "@/Components/TradingChartsControll/BuySell";
+import Image from "next/image"; 
+
+const TradingViewChart = dynamic(() => import("@/Components/TradingChartsControll/TradingViewChart"), { ssr: false });
+
+const allPairs = [
+  "CAD/USD", "AUD/USD", "EUR/USD", "GBP/USD", "NZD/USD", "USD/CAD", "USD/CHF", "USD/JPY",
+  "AUD/CAD", "AUD/CHF", "AUD/JPY", "AUD/NZD", "EUR/NZD", "EUR/AUD", "EUR/CAD", "EUR/CHF",
+  "EUR/GBP", "EUR/JPY", "GBP/AUD", "GBP/CAD", "GBP/CHF", "GBP/JPY", "GBP/NZD", "CAD/JPY",
+  "CHF/JPY", "NZD/CAD", "NZD/CHF", "NZD/JPY", "CAD/CHF", "NOK/SEK", "GBP/DKK", "GBP/NOK",
+  "GBP/SEK", "EUR/CZK", "USD/CZK", "EUR/DKK", "USD/DKK", "EUR/HKD", "USD/HKD", "EUR/MXN",
+  "USD/MXN", "EUR/HUF", "USD/HUF", "EUR/NOK", "USD/NOK", "EUR/PLN", "USD/PLN", "EUR/SEK",
+  "USD/SEK", "EUR/TRY", "USD/TRY", "EUR/ZAR", "USD/ZAR", "USD/RUB", "USD/ILS", "USD/SGD",
+  "USD/CNH"
+];
+
+type TabSelect = "Quotes" | "Chart" | "Trades" | "Settings";
+
+interface LivePairData {
+  a?: number; // ask
+  b?: number; // bid
+  spread?: number;
+}
+
+interface SelectedData {
+  pair: string;
+  ask: number;
+  bid: number;
+  spread: number;
+  dayHigh: number;
+  dayLow: number;
+}
+
+type LiveDataMap = Record<string, LivePairData>;
+
+const MainPage: React.FC = () => {
+  const [select, setSelect] = useState<TabSelect>("Quotes");
+  const [selectedData, setSelectedData] = useState<SelectedData | null>(null);
+  const [liveData, setLiveData] = useState<LiveDataMap>({});
+  const stompRef = useRef<Client | null>(null);
+  const selectedDataRef = useRef<SelectedData | null>(null);
+
+  // Keep selectedDataRef in sync with selectedData
+  useEffect(() => {
+    selectedDataRef.current = selectedData;
+  }, [selectedData]);
+
+  // Memoized callback to update live data
+  const updateLiveData = useCallback((pair: string, data: LivePairData) => {
+    setLiveData((prev) => ({ ...prev, [pair]: data }));
+    
+    // Update selected data if this pair is currently selected
+    const currentSelected = selectedDataRef.current;
+    if (currentSelected && currentSelected.pair === pair && data.a !== undefined && data.b !== undefined) {
+      setSelectedData(prevSelected => prevSelected ? {
+        ...prevSelected,
+        ask: data.a!,
+        bid: data.b!,
+        spread: data.spread || 0
+      } : null);
+    }
+  }, []);
+
+  // WebSocket connection - only runs once on mount
+  useEffect(() => {
+    const token = Cookies.get("token");
+    if (!token) return;
+
+    const client = new Client({
+      webSocketFactory: () =>
+          new SockJS(`${process.env.NEXT_PUBLIC_API_BASE_URL}/ws/forex?token=${token}`),
+      reconnectDelay: 5000,
+      onConnect: () => {
+        console.log("✅ WebSocket connected");
+        allPairs.forEach((pair) => {
+          const topic = `/topic/forex.${pair.toLowerCase().replace("/", ".")}`;
+          client.subscribe(topic, (message) => {
+            const data: LivePairData = JSON.parse(message.body);
+            updateLiveData(pair, data);
+          });
+        });
+      },
+      onStompError: (frame) => {
+        console.error("❌ STOMP error:", frame.headers["message"]);
+      },
+    });
+
+    client.activate();
+    stompRef.current = client;
+
+    return () => {
+      stompRef.current?.deactivate();
+    };
+  }, []); // Empty dependency array is correct here
+
+  const handlePairSelection = useCallback((data: SelectedData) => {
+    setSelectedData(data);
+  }, []);
+ 
+  return (
+    <div className='h-full'>
+      <div className='all h-full xl:flex xxl:flex flex-col hidden gap-3'>
+        <div className="h-full flex flex-col gap-3">
+          <Navbar />
+        
+          <div className='all-tradingchart h-full grid grid-cols-[2fr_1fr] gap-3'>
+            <TradingViewChart />
+            <div className='flex flex-col h-full gap-2'>
+              <ChartControll 
+                onSelect={handlePairSelection} 
+                liveData={liveData}
+              />
+              <BuySell data={selectedData} />
+            </div>
+          </div>
+        </div>
+        <div className='h-full overflow-y-auto'>
+          <Trades/>
+        </div>
+      </div>
+      {/* Responsive */}
+      <div className='xl:hidden flex flex-col '>
+        {select === "Quotes" && (
+          <div className='flex flex-col gap-4 w-full'>
+             <ChartControll 
+               onSelect={handlePairSelection} 
+               liveData={liveData}
+             />
+          </div>
+        )}
+        {select === "Settings" && (
+          <div className='flex flex-col gap-3'>
+            <Navbar />
+            <Menu />
+          </div>
+        )}
+        {select === "Trades" && (
+          <div className='flex flex-col gap-3 overflow-hidden'>
+            <Stats/>
+            <Trades/>
+          </div>
+        )}
+        {select === "Chart" && (
+          <div className='flex flex-col'>
+            <BuySell data={selectedData} />
+            <TradingViewChart /> 
+          </div>
+        )}
+        <div className='fixed bottom-0 left-0 xsm:px-6 xxsm:px-2 sm:px-8 md:px-9 px-9 w-full flex items-center justify-between bg-black-300 py-3 rounded-t-lg'>
+          <div
+            onClick={() => setSelect('Quotes')}
+            className='cursor-pointer flex flex-col items-center text-gray-300'
+          >
+            <Image
+              src={select === "Quotes" ? '/Images/Icons/quotes-active.svg' : '/Images/Icons/quotes.svg'}
+              alt="quotes-active.svg"
+              width={24}
+              height={24}
+            />
+            <small className={`font-semibold ${select === 'Quotes' ? 'text-green-500' : 'text-gray-300'}`}>Quotes</small>
+          </div>
+          <div
+            onClick={() => setSelect("Chart")}
+            className='flex flex-col items-center text-gray-300 cursor-pointer'
+          >
+            <Image
+              src={select === "Chart" ? "/Images/Icons/chart-active.svg" : "/Images/Icons/chart.svg"}
+              alt="chart.svg"
+              width={24}
+              height={24}
+            />
+            <small className={`font-semibold ${select === 'Chart' ? 'text-green-500' : 'text-gray-300'}`}>Charts</small>
+          </div>
+          <div
+            onClick={() => setSelect("Trades")}
+            className='flex flex-col items-center text-gray-300 cursor-pointer'
+          >
+            <Image
+              src={select === "Trades" ? "/Images/Icons/trades-active.svg" : "/Images/Icons/trades.svg"}
+              alt="trades.svg"
+              width={24}
+              height={24}
+            />
+            <small className={`font-semibold ${select === 'Trades' ? 'text-green-500' : 'text-gray-300'}`}>Trades</small>
+          </div>
+          <div
+            onClick={() => setSelect("Settings")}
+            className='flex flex-col items-center text-gray-300 cursor-pointer'
+          >
+            <Image
+              src={select === "Settings" ? "/Images/Icons/settings-active.svg" : "/Images/Icons/setting.svg"}
+              alt="setting.svg"
+              width={24}
+              height={24}
+            />
+            <small className={`font-semibold ${select === 'Settings' ? 'text-green-500' : 'text-gray-300'}`}>Settings</small>
+          </div>
+        </div>
+      </div>
+      {/* End Responsive  */}
+    </div>
+  );
+};
+
+export default MainPage;

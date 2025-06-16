@@ -132,21 +132,23 @@ const ChartControll: React.FC<ChartControllProps> = ({ onSelect }) => {
   }, [token]);
 
   // Handle manual pair selection
-  const handlePairSelect = (pair: string) => {
-    const data = liveData[pair];
-    if (data && typeof data.a === "number" && typeof data.b === "number") {
-      setSelectedPair(pair);
-      const selectedData: SelectedData = {
-        pair,
-        ask: data.a,
-        bid: data.b,
-        spread: data.spread || 0,
-        dayHigh: 0,
-        dayLow: 0
-      };
-      onSelect(selectedData);
-    }
-  };
+ const handlePairSelect = (pair: string) => {
+  setSelectedPair(pair);
+  const data = liveData[pair];
+  if (data && typeof data.a === "number" && typeof data.b === "number") {
+    onSelect({
+      pair,
+      ask: data.a,
+      bid: data.b,
+      spread: data.spread || 0,
+      dayHigh: 0,
+      dayLow: 0
+    });
+  } else {
+    
+    onSelect(null);
+  }
+};
 
   return (
     <div className="w-full lg:max-h-full  p-3 overflow-hidden bg-black-300 rounded-20">

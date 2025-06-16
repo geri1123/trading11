@@ -1,0 +1,45 @@
+{
+  "compilerOptions": {
+    "target": "ES2017",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "incremental": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "@/hooks/*": ["src/app/hooks/*"],
+    "@/api/*": ["src/app/api/*"],
+      "@/Components/*": ["src/app/Components/*"],
+       "@/Content/*": ["src/app/Content/*"],
+       "@/Constants/*": ["src/app/Constants/*"],
+      "@/layouts/*": ["src/app/layouts/*"],
+      "@/context/*": ["src/Context/*"],
+      "@/lib/*": ["src/app/lib/*"],
+      "@/TradingStats/*": ["src/app/TradingStats/*"],
+      // "@/actions/*": ["src/app/actions/*"],
+       "@/UseToggleState/*": ["src/app/UseToggleState/*"],
+      "@api/*": ["src/app/api/*"],
+      "@auth/*": ["src/app/auth/*"],
+      "@constants/*": ["src/app/constants/*"],
+      "@/Dialogs/*": ["src/app/Dialogs/*"],
+      "@redux/*": ["src/redux/*"],
+      "@/utils/*": ["src/app/utils/*"]
+    },
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ]
+  },
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "exclude": ["node_modules"]
+}
