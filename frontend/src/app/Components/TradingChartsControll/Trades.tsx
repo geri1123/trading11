@@ -9,7 +9,6 @@ import PendingContentMobile from "@/app/Content/PendingContentMobile";
 import CloseTradesDialog from "@/app/Dialogs/CloseTradesDialog";
 import { useTradeContext } from "@/Context/TradeContext";
 import Image from "next/image";
-import { useProfitLoss } from "@/app/hooks/useProfitLoss";
 
 export type TradeStatus = "OPEN" | "PENDING" | "CLOSED";
 
@@ -19,10 +18,6 @@ const Trades: React.FC = () => {
   const [summaryFilter, setSummaryFilter] = useState<string>("today");
   const { counts, trades, activeTab, setActiveTab, loading } =
     useTradeContext();
-
-  const data = useProfitLoss();
-  // console.log(data);
-  
 
   const getStatusForTab = (tab: typeof activeTab): TradeStatus => {
     if (tab === "Position") return "OPEN";

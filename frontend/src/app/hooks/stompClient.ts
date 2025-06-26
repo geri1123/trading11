@@ -48,5 +48,17 @@ export const initStompClient = () => {
   stompClient.activate();
 };
 
+export const disconnectStomp = () => {
+  if (stompClient && stompClient.active) {
+    stompClient.deactivate();
+    console.log("🛑 STOMP disconnected");
+  }
+
+  isConnected = false;
+  stompClient = null;
+  onConnectCallbacks = [];
+  reconnectListeners.clear();
+};
+
 // Auto-init on import
 initStompClient();

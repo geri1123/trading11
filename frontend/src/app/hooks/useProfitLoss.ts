@@ -1,42 +1,48 @@
-// hooks/useProfitLossData.ts
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { IMessage } from '@stomp/stompjs';
 import { awaitUntilConnected, getStompClient, onStompReconnect } from './stompClient';
 
-interface ProfitLossData {
-  pnl: number;
-  total: number;
+interface TopWidgetData {
+  // Adjust these fields to match the actual payload shape
+  username: string;
+  balance: number;
+  trades: number;
   [key: string]: any;
 }
 
-export const useProfitLoss = () => {
-  const [data, setData] = useState<ProfitLossData | null>(null);
-  const [subRef, setSubRef] = useState<any>(null);
+export const useTopWidgetData = () => {
+  const [data, setData] = useState<TopWidgetData | null>(null);
+  const subRef = useRef<any>(null);
+  const isMounted = useRef(true);
 
   const subscribe = async () => {
+    await awaitUntilConnected();
+
     const client = getStompClient();
-    if (!client || !client.connected) return;
+    if (!client?.connected) return;
 
-    client.publish({ destination: '/app/trade-live-profit-loss', body: '{}' });
-
-    const subscription = client.subscribe('/user/queue/trade-live-profit-loss', (message: IMessage) => {
-      const payload = JSON.parse(message.body);
-    //   console.log(payload);
-      
-      setData(payload);
+    client.publish({
+      destination: '/app/user-live-top-widget', // Optional if your backend requires trigger
+      body: '{}',
     });
 
-    setSubRef(subscription);
+    subRef.current = client.subscribe('/user/queue/user-live-top-widget', (message: IMessage) => {
+      if (!isMounted.current) return;
+      const payload = JSON.parse(message.body);
+      setData(payload);
+    });
   };
 
   useEffect(() => {
+    isMounted.current = true;
     let unsubscribeReconnect: () => void;
 
     const init = async () => {
       await awaitUntilConnected();
       await subscribe();
+
       unsubscribeReconnect = onStompReconnect(() => {
-        subRef?.unsubscribe?.();
+        subRef.current?.unsubscribe?.();
         subscribe();
       });
     };
@@ -44,7 +50,8 @@ export const useProfitLoss = () => {
     init();
 
     return () => {
-      subRef?.unsubscribe?.();
+      isMounted.current = false;
+      subRef.current?.unsubscribe?.();
       unsubscribeReconnect?.();
     };
   }, []);

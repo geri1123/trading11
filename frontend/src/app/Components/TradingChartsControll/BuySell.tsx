@@ -7,6 +7,7 @@ import Buysellextend from "@/Dialogs/Buysellextend";
 
 import { AuthContext, AuthContextType } from "@/Context/AuthContext";
 import { fetchOnce, useSinglePairData } from "@/app/hooks/usePairData";
+import { useTopWidgetData } from "@/app/hooks/useProfitLoss";
 interface SelectedData {
   pair: string;
   ask: number;
@@ -41,6 +42,8 @@ interface BuySellProps {
 const BuySell: React.FC<BuySellProps> = ({ selectedPair: selectedData }) => {
   const pair = selectedData?.pair || "";
   const pairData = useSinglePairData(pair);
+
+  const widgetData = useTopWidgetData();
 
   // base pair if cross pair is selected
   const basePair = useMemo(() => {
@@ -155,24 +158,21 @@ const BuySell: React.FC<BuySellProps> = ({ selectedPair: selectedData }) => {
 
   const currencyFlags = getCurrencyFlags(data.pair);
 
-  const lotSize = 100000;
-  const userBalance = user?.balance ?? 0;
-
   const calculateMargin = (price: number) => {
+    const lotSize = 100000;
     const [base, quote] = data.pair.split("/");
+
     const pairSpecific =
       quote == "USD" ? price : base != "USD" ? data.baseUsdRate ?? 1 : 1;
+
     const exposure = value * lotSize * pairSpecific;
     const leverage = user?.leverage ?? 100;
     const margin = exposure / leverage;
 
-    const marginUsed = 0; // sum of all open positions margin
-    const profitLoss = 0; // sum of all open positions profit/loss
-    const equity = userBalance + profitLoss;
-    const marginAvailable = equity - marginUsed;
+    const marginAvailable = widgetData?.availableMargin || 0;
 
     const marginPercentage =
-      userBalance > 0 ? (margin / marginAvailable) * 100 : 0;
+      marginAvailable > 0 ? (margin / marginAvailable) * 100 : 100;
 
     return {
       amount: margin.toFixed(2),
@@ -212,9 +212,9 @@ const BuySell: React.FC<BuySellProps> = ({ selectedPair: selectedData }) => {
           <Image
             src="/Images/Icons/chevron-down.svg"
             alt="arrow-icon"
-            className="rotate-180"
             width={16}
             height={16}
+            className="rotate-180 w-4 h-4"
           />
         </button>
       </div>
@@ -256,6 +256,7 @@ const BuySell: React.FC<BuySellProps> = ({ selectedPair: selectedData }) => {
                 alt="minus-icon"
                 width={16}
                 height={16}
+                className="w-4 h-4"
               />
             </button>
             <input
@@ -274,6 +275,7 @@ const BuySell: React.FC<BuySellProps> = ({ selectedPair: selectedData }) => {
                 alt="plus-icon"
                 width={16}
                 height={16}
+                className="w-4 h-4"
               />
             </button>
           </div>

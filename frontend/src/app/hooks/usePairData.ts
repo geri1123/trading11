@@ -1,5 +1,4 @@
-// hooks/usePairData.ts
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { IMessage } from '@stomp/stompjs';
 import { awaitUntilConnected, getStompClient } from './stompClient';
 
@@ -80,65 +79,100 @@ const removeListener = (pair: string, callback: Callback) => {
 };
 
 export const useSinglePairData = (pair: string) => {
-    const [data, setData] = useState<LivePairData | null>(pair && latestData[pair] ? latestData[pair] : null);
+    const [data, setData] = useState<LivePairData | null>(
+        pair && latestData[pair] ? latestData[pair] : null
+    );
+
+    // ✅ This ensures listener is stable across renders
+    const listenerRef = useRef<Callback | null>(null);
 
     useEffect(() => {
         if (!pair) return;
 
-        const listener = (newData: LivePairData) => setData({ ...newData });
+        const listener: Callback = (newData: LivePairData) => {
+            setData({ ...newData }); // safe shallow copy
+        };
+
+        listenerRef.current = listener;
+
         addListener(pair, listener);
-        return () => removeListener(pair, listener);
+
+        return () => {
+            if (listenerRef.current) {
+                removeListener(pair, listenerRef.current);
+            }
+        };
     }, [pair]);
 
     return data;
 };
 
+
 export const useMultiPairData = (pairs: string[]) => {
-    const [dataMap, setDataMap] = useState<LiveDataMap>(() => {
-        const initial: LiveDataMap = {};
-        pairs.forEach((pair) => {
-            if (pair && latestData[pair]) initial[pair] = latestData[pair];
-        });
-        return initial;
+  const [dataMap, setDataMap] = useState<LiveDataMap>(() => {
+    const initial: LiveDataMap = {};
+    pairs.forEach((pair) => {
+      if (pair && latestData[pair]) initial[pair] = latestData[pair];
+    });
+    return initial;
+  });
+
+  const bufferRef = useRef<LiveDataMap>({});
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const pairsRef = useRef<string[]>([]);
+
+  useEffect(() => {
+    const pairsChanged =
+      pairs.length !== pairsRef.current.length ||
+      pairs.some((p, i) => p !== pairsRef.current[i]);
+
+    if (!pairsChanged) return;
+
+    pairsRef.current = pairs;
+
+    if (!pairs || pairs.length === 0) return;
+
+    let isMounted = true;
+    const listeners: Record<string, Callback> = {};
+
+    pairs.forEach((pair) => {
+      if (!pair) return;
+
+      listeners[pair] = (newData: LivePairData) => {
+        if (!isMounted) return;
+        bufferRef.current[pair] = newData;
+
+        if (!timerRef.current) {
+          timerRef.current = setTimeout(() => {
+            if (!isMounted) return;
+            setDataMap((prev) => ({
+              ...prev,
+              ...bufferRef.current,
+            }));
+            bufferRef.current = {};
+            timerRef.current = null;
+          }, 100);
+        }
+      };
+
+      addListener(pair, listeners[pair]);
     });
 
-    const bufferRef = useRef<LiveDataMap>({});
-    const timerRef = useRef<NodeJS.Timeout | null>(null);
+    return () => {
+      isMounted = false;
+      pairs.forEach((pair) => {
+        if (pair && listeners[pair]) {
+          removeListener(pair, listeners[pair]);
+        }
+      });
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+        timerRef.current = null;
+      }
+    };
+  }, [pairs]); // now this is stable
 
-    useEffect(() => {
-        if (!pairs || pairs.length === 0) return;
-
-        const listeners: Record<string, Callback> = {};
-
-        pairs.forEach((pair) => {
-            if (!pair) return;
-            listeners[pair] = (newData: LivePairData) => {
-                bufferRef.current[pair] = newData;
-
-                if (!timerRef.current) {
-                    timerRef.current = setTimeout(() => {
-                        setDataMap((prev) => ({
-                            ...prev,
-                            ...bufferRef.current,
-                        }));
-                        bufferRef.current = {};
-                        timerRef.current = null;
-                    }, 100);
-                }
-            };
-            addListener(pair, listeners[pair]);
-        });
-
-        return () => {
-            pairs.forEach((pair) => {
-                if (pair && listeners[pair]) {
-                    removeListener(pair, listeners[pair]);
-                }
-            });
-        };
-    }, [pairs.join(',')]);
-
-    return dataMap;
+  return dataMap;
 };
 
 export const fetchOnce = async (pair: string): Promise<LivePairData | null> => {
@@ -149,4 +183,14 @@ export const fetchOnce = async (pair: string): Promise<LivePairData | null> => {
         };
         addListener(pair, temp);
     });
+};
+
+export const clearAllPairListeners = () => {
+    Object.keys(pairListeners).forEach((pair) => {
+        pairListeners[pair]?.clear();
+        pairRefCounts[pair] = 0;
+        pairSubscriptions[pair]?.();
+        delete pairSubscriptions[pair];
+    });
+    Object.keys(latestData).forEach((key) => delete latestData[key]);
 };
