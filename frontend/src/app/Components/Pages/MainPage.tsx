@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useCallback } from "react";
+import React, { useState } from "react";
 
 import Navbar from "@/Components/Navbar/Navbar";
 import Menu from "@/Components/Navbar/Menu";
@@ -17,22 +17,9 @@ const TradingViewChart = dynamic(
 
 type TabSelect = "Quotes" | "Chart" | "Trades" | "Settings";
 
-interface SelectedData {
-  pair: string;
-  ask: number;
-  bid: number;
-  spread: number;
-  dayHigh: number;
-  dayLow: number;
-}
-
 const MainPage: React.FC = () => {
   const [select, setSelect] = useState<TabSelect>("Quotes");
-  const [selectedData, setSelectedData] = useState<SelectedData | null>(null);
-
-  const handlePairSelection = useCallback((data: SelectedData) => {
-    setSelectedData(data);
-  }, []);
+  const [selectedData, setSelectedData] = useState<string>("");
 
   return (
     <div className="h-full">
@@ -43,7 +30,7 @@ const MainPage: React.FC = () => {
           <div className="all-tradingchart h-full grid grid-cols-[2fr_1fr] gap-3">
             <TradingViewChart selectedPair={selectedData} />
             <div className="flex flex-col h-full gap-2">
-              <ChartControll onSelect={handlePairSelection} />
+              <ChartControll setSelectedData={setSelectedData} />
               <BuySell selectedPair={selectedData} />
             </div>
           </div>
@@ -56,7 +43,7 @@ const MainPage: React.FC = () => {
       <div className="xl:hidden flex flex-col ">
         {select === "Quotes" && (
           <div className="flex flex-col gap-4 w-full">
-            <ChartControll onSelect={handlePairSelection} />
+            <ChartControll setSelectedData={setSelectedData} />
           </div>
         )}
         {select === "Settings" && (
@@ -91,6 +78,7 @@ const MainPage: React.FC = () => {
               alt="quotes-active.svg"
               width={24}
               height={24}
+              className="w-6 h-6"
             />
             <small
               className={`font-semibold ${
@@ -113,6 +101,7 @@ const MainPage: React.FC = () => {
               alt="chart.svg"
               width={24}
               height={24}
+              className="w-6 h-6"
             />
             <small
               className={`font-semibold ${
@@ -135,6 +124,7 @@ const MainPage: React.FC = () => {
               alt="trades.svg"
               width={24}
               height={24}
+              className="w-6 h-6"
             />
             <small
               className={`font-semibold ${
@@ -157,6 +147,7 @@ const MainPage: React.FC = () => {
               alt="setting.svg"
               width={24}
               height={24}
+              className="w-6 h-6"
             />
             <small
               className={`font-semibold ${

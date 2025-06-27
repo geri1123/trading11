@@ -1,5 +1,5 @@
+import { useUserWidgetData } from "@/app/lib/liveStore";
 import React from "react";
-import { useTopWidgetData } from "@/app/hooks/useProfitLoss";
 
 interface Stat {
   id: string;
@@ -7,7 +7,7 @@ interface Stat {
 }
 
 const Stats: React.FC = () => {
-  const widgetData = useTopWidgetData();
+  const widgetData = useUserWidgetData();
 
   const stats: Stat[] = [
     { id: "Balance", balance: widgetData?.balance || null },
@@ -33,11 +33,11 @@ const Stats: React.FC = () => {
           </h6>
           <p
             className={`leading-none lg:text-sm text-sm xl:text-sm 3xl:text-base font-medium text-white ${
-              head.balance! < 0 && "text-red-400"
+              head.balance! < 0 && "!text-red-400"
             } ${
               head.id == "Profit & Loss" &&
               head.balance! > 0 &&
-              "text-green-400"
+              "!text-green-400"
             }`}
           >
             {head.id != "Margin Level" && <span className="opacity-70">$</span>}

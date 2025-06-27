@@ -1,8 +1,7 @@
 import * as React from "react";
 import { useEffect, useState, useMemo } from "react";
 import Image from "next/image";
-import { useMultiPairData } from "@/app/hooks/usePairData";
-import PriceCell from "@/app/Content/PriceCell";
+import { VirtualPriceTable } from "@/app/Content/PriceTable";
 
 const allPairs = [
   "CAD/USD",
@@ -95,23 +94,11 @@ const categoryGroups: Record<string, string[]> = {
   metals: ["USD/CNH", "USD/SGD", "USD/RUB"],
 };
 
-interface SelectedData {
-  pair: string;
-  ask: number;
-  bid: number;
-  spread: number;
-  dayHigh: number;
-  dayLow: number;
-}
-
 interface ChartControllProps {
-  onSelect: (element: SelectedData) => void;
+  setSelectedData: (pair: string) => void; // Accepts a string
 }
 
-const ChartControll: React.FC<ChartControllProps> = ({ onSelect }) => {
-  // Fetch live data for all pairs
-  const liveData = useMultiPairData(allPairs);
-
+const ChartControll: React.FC<ChartControllProps> = ({ setSelectedData }) => {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedPair, setSelectedPair] = useState<string | null>(null);
   const [hasAutoSelected, setHasAutoSelected] = useState<boolean>(false);
@@ -134,47 +121,36 @@ const ChartControll: React.FC<ChartControllProps> = ({ onSelect }) => {
   }, [categoryPairs, searchTerm]);
 
   // Auto-select first available data after loading (only once)
-  useEffect(() => {
-    if (!hasAutoSelected && Object.keys(liveData).length > 0) {
-      for (const pair of filteredPairs) {
-        const data = liveData[pair];
-        if (
-          data &&
-          typeof data.a === "number" &&
-          typeof data.b === "number" &&
-          typeof data.spread === "number"
-        ) {
-          setSelectedPair(pair);
-          setHasAutoSelected(true);
-          onSelect({
-            pair,
-            ask: data.a,
-            bid: data.b,
-            spread: data.spread,
-            dayHigh: 0,
-            dayLow: 0,
-          });
-          break;
-        }
-      }
-    }
-  }, [liveData, filteredPairs, onSelect, hasAutoSelected]);
+  // useEffect(() => {
+  //   if (!hasAutoSelected && Object.keys(liveData).length > 0) {
+  //     for (const pair of filteredPairs) {
+  //       const data = liveData[pair];
+  //       if (
+  //         data &&
+  //         typeof data.a === "number" &&
+  //         typeof data.b === "number" &&
+  //         typeof data.spread === "number"
+  //       ) {
+  //         setSelectedPair(pair);
+  //         setHasAutoSelected(true);
+  //         onSelect({
+  //           pair,
+  //           ask: data.a,
+  //           bid: data.b,
+  //           spread: data.spread,
+  //           dayHigh: 0,
+  //           dayLow: 0,
+  //         });
+  //         break;
+  //       }
+  //     }
+  //   }
+  // }, [liveData, filteredPairs, onSelect, hasAutoSelected]);
 
-  // Handle pair selection
+  // Handler for selecting a pair
   const handlePairSelect = (pair: string) => {
-    const data = liveData[pair];
-    if (data && typeof data.a === "number" && typeof data.b === "number") {
-      setSelectedPair(pair);
-      const selectedData: SelectedData = {
-        pair,
-        ask: data.a,
-        bid: data.b,
-        spread: data.spread || 0,
-        dayHigh: 0,
-        dayLow: 0,
-      };
-      onSelect(selectedData);
-    }
+    setSelectedPair(pair);
+    setSelectedData(pair);
   };
 
   return (
@@ -216,129 +192,12 @@ const ChartControll: React.FC<ChartControllProps> = ({ onSelect }) => {
           </select>
         </div>
       </div>
-      <div
-        className="overflow-x-auto 
-        xsm:max-h-[calc(78vh-150px)]
-        sm:max-h-[calc(90vh-140px)]
-        xxsm:max-h-[calc(78vh-140px)]
-        md:max-h-[calc(100vh-300px)]
-        lg:max-h-[calc(110vh-300px)]
-        xl:max-h-none xl:h-auto chart-scrollbar rounded-lg"
-      >
-        <div className="min-w-full  ">
-          <table className="table-auto w-full">
-            <thead className="sticky left-0 bg-black-700">
-              <tr className="border-b sticky top-0 border-gray-500">
-                <th className=" bg-black-700 z-20">
-                  <div className="flex items-center justify-between gap-1 min-w-[120px] py-2 pl-4">
-                    <p className="text-sm font-normal text-white">Pair</p>
-                    <div className="h-[1rem] w-[2px] bg-gray-300"></div>
-                  </div>
-                </th>
-                {["Ask", "Bid", "Spread", "Day High", "Day Low"].map(
-                  (title) => (
-                    <th key={title} className="bg-black-700 sticky top-0">
-                      <div className=" flex items-center justify-between gap-1 min-w-[88px] py-2 pl-4">
-                        <p className="text-sm font-normal text-white">
-                          {title}
-                        </p>
-                        <div className="h-[1rem] w-[2px] bg-gray-300"></div>
-                      </div>
-                    </th>
-                  )
-                )}
-              </tr>
-            </thead>
-          </table>
-          <div className="chart-scrollbar max-h-auto xl:max-h-[130px]">
-            <table className="table-auto w-full">
-              <tbody>
-                {filteredPairs.map((pair, i) => {
-                  const data = liveData[pair];
-                  const isSelected = selectedPair === pair;
-                  return (
-                    <tr
-                      key={i}
-                      onClick={() => handlePairSelect(pair)}
-                      className={`cursor-pointer hover:bg-black-500 text-xs font-medium text-white transition-colors ${
-                        isSelected
-                          ? "bg-black-500 border-l-2 border-green-400"
-                          : "bg-black-700"
-                      }`}
-                    >
-                      <td className="sticky left-0 bg-inherit min-w-[120px] pl-4 py-2">
-                        <div className="flex items-center gap-1.5">
-                          <Image
-                            src={`/Images/flags/${pair
-                              .split("/")[0]
-                              .toLowerCase()}.svg`}
-                            alt={`${pair.split("/")[0]} flag`}
-                            className="w-3.5 h-3.5  rounded-full"
-                            width={16}
-                            height={16}
-                          />
-                          <p className="pt-1 text-xs text-white uppercase">
-                            {pair}
-                          </p>
-                          <Image
-                            src={`/Images/flags/${pair
-                              .split("/")[1]
-                              .toLowerCase()}.svg`}
-                            alt={`${pair.split("/")[1]} flag`}
-                            className="w-3.5 h-3.5 rounded-full"
-                            width={16}
-                            height={16}
-                          />
-                        </div>
-                      </td>
-                      <td>
-                        <div className="flex items-center justify-between gap-1 min-w-[88px] py-2 pl-4">
-                          {/* <p className="text-xs font-normal text-white">
-                            {data?.a !== undefined ? data.a.toFixed(5) : "-"}
-                          </p> */}
-                          <PriceCell value={data?.a} />
-                          <div className="h-[1rem] w-[2px] bg-gray-300"></div>
-                        </div>
-                      </td>
-                      <td>
-                        <div className="flex items-center justify-between gap-1 min-w-[88px] py-2 pl-4">
-                          {/* <p className="text-xs font-normal text-white">
-                            {data?.b !== undefined ? data.b.toFixed(5) : "-"}
-                          </p> */}
-                          <PriceCell value={data?.a} />
-                          <div className="h-[1rem] w-[2px] bg-gray-300"></div>
-                        </div>
-                      </td>
-                      <td>
-                        <div className="flex items-center justify-between gap-1 min-w-[88px] py-2 pl-4">
-                          <p className="text-xs font-normal text-white">
-                            {data?.spread !== undefined
-                              ? data.spread.toFixed(5)
-                              : "-"}
-                          </p>
-                          <div className="h-[1rem] w-[2px] bg-gray-300"></div>
-                        </div>
-                      </td>
-                      <td>
-                        <div className="flex items-center justify-between gap-1 min-w-[88px] py-2 pl-4">
-                          <p className="text-xs font-normal text-white">-</p>
-                          <div className="h-[1rem] w-[2px] bg-gray-300"></div>
-                        </div>
-                      </td>
-                      <td>
-                        <div className="flex items-center justify-between gap-1 min-w-[88px] py-2 pl-4">
-                          <p className="text-xs font-normal text-white">-</p>
-                          <div className="h-[1rem] w-[2px]"></div>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
+
+      <VirtualPriceTable
+        pairs={filteredPairs}
+        selectedPair={selectedPair}
+        onPairSelect={handlePairSelect}
+      />
     </div>
   );
 };

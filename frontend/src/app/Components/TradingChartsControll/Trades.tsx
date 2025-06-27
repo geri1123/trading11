@@ -7,7 +7,7 @@ import ClosedPositionMobile from "@/app/Content/ClosedPositionMobile";
 import PositionContentMobile from "@/app/Content/PositionContentMobile";
 import PendingContentMobile from "@/app/Content/PendingContentMobile";
 import CloseTradesDialog from "@/app/Dialogs/CloseTradesDialog";
-import { useTradeContext } from "@/Context/TradeContext";
+import { useTradeContext } from "@/app/Context/TradeContext";
 import Image from "next/image";
 
 export type TradeStatus = "OPEN" | "PENDING" | "CLOSED";

@@ -6,12 +6,10 @@ import React, {
   KeyboardEvent,
   useContext,
 } from "react";
-import Transition from "@/Context/Transition";
+import Transition from "@/app/Context/Transition";
 import Image from "next/image";
 import Stats from "@/Components/TradingStats/Stats";
-import { AuthContext } from "@/Context/AuthContext";
-import { disconnectStomp } from "@/app/hooks/stompClient";
-import { clearAllPairListeners } from "@/app/hooks/usePairData";
+import { AuthContext } from "@/app/Context/AuthContext";
 
 const Navbar: React.FC = () => {
   const [dropdownOpen, setDropdownOpen] = useState<boolean>(false);
@@ -22,8 +20,6 @@ const Navbar: React.FC = () => {
   const { logout, user } = useContext(AuthContext)!;
 
   const handleLogout = async () => {
-    clearAllPairListeners();
-    disconnectStomp();
     await logout();
   };
 

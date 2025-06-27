@@ -5,27 +5,9 @@ import { useToggleShow } from "@/UseToggleState/UseToggleShow";
 import SellDialog from "@/Dialogs/SellDialog";
 import Buysellextend from "@/Dialogs/Buysellextend";
 
-import { AuthContext, AuthContextType } from "@/Context/AuthContext";
-import { fetchOnce, useSinglePairData } from "@/app/hooks/usePairData";
-import { useTopWidgetData } from "@/app/hooks/useProfitLoss";
-interface SelectedData {
-  pair: string;
-  ask: number;
-  bid: number;
-  spread: number;
-  dayHigh: number;
-  dayLow: number;
-}
-
-interface SelectedDataUpdated {
-  pair: string;
-  ask: number;
-  bid: number;
-  spread: number;
-  dayHigh: number;
-  dayLow: number;
-  baseUsdRate: number | null; // optional extra data
-}
+import { AuthContext, AuthContextType } from "@/app/Context/AuthContext";
+import { fetchOnce, usePairData, useUserWidgetData } from "@/app/lib/liveStore";
+import { useVisiblePair } from "@/app/hooks/useVisiblePair";
 
 interface LivePairData {
   a?: number;
@@ -36,50 +18,61 @@ interface LivePairData {
 type DialogType = "buy" | "sell" | "extand" | null;
 
 interface BuySellProps {
-  selectedPair?: SelectedData | null;
+  selectedPair?: string;
 }
 
-const BuySell: React.FC<BuySellProps> = ({ selectedPair: selectedData }) => {
-  const pair = selectedData?.pair || "";
-  const pairData = useSinglePairData(pair);
+const BuySell: React.FC<BuySellProps> = ({ selectedPair }) => {
+  const pair = selectedPair || "";
 
-  const widgetData = useTopWidgetData();
+  // make visible and Fetch pair data
+  useVisiblePair(pair);
+  const pairData = usePairData(pair);
+
+  // Fetch top user widget data
+  const widgetData = useUserWidgetData();
 
   // base pair if cross pair is selected
   const basePair = useMemo(() => {
-    if (!selectedData?.pair) return "";
-    const [base, quote] = selectedData.pair.split("/");
+    if (!selectedPair) return "";
+    const [base, quote] = selectedPair.split("/");
     const baseUsdPair =
       base !== "USD" && quote !== "USD" ? `${base}/USD` : null;
 
     return baseUsdPair ? baseUsdPair : "";
-  }, [selectedData?.pair]);
+  }, [selectedPair]);
 
   // Fetch base data only if basePair is defined
   const [baseData, setBaseData] = useState<LivePairData | null>(null);
+
+  // Effect to fetch base data when basePair changes
   useEffect(() => {
+    let cancelled = false;
     if (!basePair) {
       setBaseData(null);
       return;
     }
-
-    fetchOnce(basePair).then(setBaseData);
+    fetchOnce(basePair).then((data) => {
+      if (!cancelled) setBaseData(data);
+    });
+    return () => {
+      cancelled = true; // prevent stale setState warnings
+    };
   }, [basePair]);
 
+  // Prepare data for rendering
   const data: any = useMemo(() => {
-    if (!pairData || !selectedData)
-      return { ...selectedData, baseUsdRate: null };
+    if (!pairData || !selectedPair) return null;
 
     return {
-      pair: selectedData.pair,
-      ask: pairData.a ?? selectedData.ask,
-      bid: pairData.b ?? selectedData.bid,
-      spread: pairData.spread ?? selectedData.spread,
-      dayHigh: selectedData.dayHigh,
-      dayLow: selectedData.dayLow,
-      baseUsdRate: baseData?.a ?? null, // optional extra data
+      pair: selectedPair,
+      ask: pairData.a ?? 0,
+      bid: pairData.b ?? 0,
+      spread: pairData.spread ?? 0,
+      dayHigh: 0,
+      dayLow: 0,
+      baseUsdRate: baseData?.a ?? null,
     };
-  }, [pairData, baseData, selectedData]);
+  }, [pairData, baseData, selectedPair]);
 
   const [value, setValue] = useState<number>(0.01);
   const [activeDialog, setActiveDialog] = useState<DialogType>(null);
@@ -88,7 +81,7 @@ const BuySell: React.FC<BuySellProps> = ({ selectedPair: selectedData }) => {
   const { user } = useContext(AuthContext) as AuthContextType;
 
   // Don't render if no data is provided
-  if (!selectedData || !data || !data.pair) {
+  if (!selectedPair || !data || !data.pair) {
     return (
       <div className="w-full xl:p-3 xxl:p-3.5 p-2.5 overflow-hidden bg-black-300 rounded-20">
         <div className="flex items-center justify-center h-32">

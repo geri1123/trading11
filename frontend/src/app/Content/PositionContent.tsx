@@ -2,12 +2,13 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import { formatDate } from "@/Constants/date";
-import { useTradeContext } from "@/Context/TradeContext";
 import { useToggleShow } from "@/UseToggleState/UseToggleShow";
 // import ModifyDialog from '@/Dialogs/ModifyDialog';
 import PartialDialog from "@/Dialogs/PartialDialog";
 import { closePosition } from "@/api/apiTrades";
 import { toast } from "react-toastify";
+import { useTradeContext } from "../Context/TradeContext";
+import PositionRow from "./PositionRow";
 
 const formatNumber = (
   num: number | string | null | undefined,
@@ -21,21 +22,18 @@ const formatNumber = (
 };
 
 const PositionContent: React.FC = () => {
-  // const data = useProfitLoss();
-  // console.log(data);
-
   const [activeDialog, setActiveDialog] = useState<string | null>(null);
   const [selectedData, setSelectedData] = useState<any>(null);
   const { isOpen, toggleDropdown, closeDropdown, dropdownref, isClosing } =
     useToggleShow();
   const { trades, loading, error, fetchTrades } = useTradeContext();
-  // console.log(trades);
 
   const handleOpenDialog = (type: string, rowData: any) => {
     setActiveDialog(type);
     setSelectedData(rowData);
     toggleDropdown();
   };
+
   const handleClose = async (positionId: number) => {
     try {
       await closePosition(positionId);
@@ -46,6 +44,7 @@ const PositionContent: React.FC = () => {
       toast.error("Failed to close trade.");
     }
   };
+
   const handleAfterClose = () => {
     if (fetchTrades) fetchTrades("CLOSED");
   };
@@ -79,7 +78,7 @@ const PositionContent: React.FC = () => {
                 Size
               </th>
               <th className="px-2 py-2 text-center text-xs text-gray-200">
-                Entry
+                Entry -- Market
               </th>
               <th className="px-2 py-2 text-center text-xs text-gray-200">
                 Stop Loss
@@ -116,104 +115,14 @@ const PositionContent: React.FC = () => {
 
           {/* Rows */}
           <tbody className="divide-y divide-gray-700">
-            {trades.map((row, index) => (
-              <tr
-                key={row.positionId || index}
-                className="hover:bg-gray-800 transition-colors duration-150"
-              >
-                <td className="sticky left-0  px-2 py-2 text-white text-xs font-medium whitespace-nowrap">
-                  <div className="flex items-center gap-2">
-                    <Image
-                      src="/Images/Icons/qube.svg"
-                      alt="icon"
-                      width={16}
-                      height={16}
-                      className="w-4 h-4"
-                    />
-                    {row.instrument}
-                  </div>
-                </td>
-                <td className="text-center px-2 py-2">
-                  <span
-                    className={`inline-block text-xs font-medium px-2 py-0.5 rounded-full ${
-                      row.side === "BUY"
-                        ? "bg-green-100 text-green-800"
-                        : "bg-red-100 text-red-800"
-                    }`}
-                  >
-                    {row.side}
-                  </span>
-                </td>
-                <td className="text-center text-gray-200 text-xs">
-                  {formatNumber(row.lotSize, 2)}
-                </td>
-                <td className="text-center text-gray-200 text-xs font-mono">
-                  {formatNumber(row.entryPrice, 5)}
-                </td>
-                <td className="text-center text-gray-200 text-xs font-mono">
-                  {formatNumber(row.stopLoss, 5)}
-                </td>
-                <td className="text-center text-gray-200 text-xs font-mono">
-                  {formatNumber(row.takeProfit, 5)}
-                </td>
-                <td className="text-center text-gray-200 text-xs font-mono">
-                  {formatNumber(row.margin, 2)}
-                </td>
-                <td className="text-center text-gray-200 text-xs font-mono">
-                  {formatNumber(row.exposure, 2)}
-                </td>
-                <td className="text-center text-gray-300 text-xs">
-                  {formatDate(row.openedAt)}
-                </td>
-                <td className="text-center text-orange-400 text-xs font-mono">
-                  {formatNumber(row.fee, 2)}
-                </td>
-                <td className="text-center text-blue-400 text-xs font-mono">
-                  {formatNumber(row.swap, 2)}
-                </td>
-                <td
-                  className={`text-center text-xs font-bold ${
-                    row.profitLoss < 0 ? "text-red-400" : "text-green-400"
-                  }`}
-                >
-                  {row.profitLoss > 0 ? "+" : ""}
-                  {formatNumber(row.profitLoss, 2)}
-                </td>
-                <td className="text-center text-gray-400 text-xs font-mono">
-                  {row.positionId}
-                </td>
-                <td className="text-center">
-                  <div className="flex justify-center gap-2">
-                    <button onClick={() => handleOpenDialog("Modify", row)}>
-                      <Image
-                        src="/Images/Icons/edit.svg"
-                        alt="edit"
-                        width={16}
-                        height={16}
-                        className="w-4 h-4"
-                      />
-                    </button>
-                    <button onClick={() => handleOpenDialog("partial", row)}>
-                      <Image
-                        src="/Images/Icons/close-trade.svg"
-                        alt="partial"
-                        width={16}
-                        height={16}
-                        className="w-4 h-4"
-                      />
-                    </button>
-                    <button onClick={() => handleClose(row.positionId)}>
-                      <Image
-                        src="/Images/Icons/delete-trade.svg"
-                        alt="delete"
-                        width={16}
-                        height={16}
-                        className="w-4 h-4"
-                      />
-                    </button>
-                  </div>
-                </td>
-              </tr>
+            {trades.map((row) => (
+              <PositionRow
+                key={row.positionId}
+                row={row}
+                onModify={(r) => handleOpenDialog("Modify", r)}
+                onPartial={(r) => handleOpenDialog("partial", r)}
+                handleClose={(id) => handleClose(id)}
+              />
             ))}
           </tbody>
         </table>

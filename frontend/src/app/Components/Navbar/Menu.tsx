@@ -1,15 +1,11 @@
 import React, { useContext } from "react";
 import Image from "next/image";
-import { AuthContext } from "@/Context/AuthContext";
-import { clearAllPairListeners } from "@/app/hooks/usePairData";
-import { disconnectStomp } from "@/app/hooks/stompClient";
+import { AuthContext } from "@/app/Context/AuthContext";
 
 const Menu: React.FC = () => {
   const { logout } = useContext(AuthContext)!;
 
   const handleLogout = async () => {
-    clearAllPairListeners();
-    disconnectStomp();
     await logout();
   };
 

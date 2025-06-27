@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { toast } from "react-toastify";
 import { createOrder, CreateOrderData } from "@/api/apiTrades";
-import { useTradeContext } from "@/Context/TradeContext";
+import { useTradeContext } from "@/app/Context/TradeContext";
 
 // Define interfaces for type safety
 interface SelectedData {

@@ -2,7 +2,7 @@
 import React from 'react';
 import Image from 'next/image';
 import { formatDate } from '@/Constants/date';
-import { useTradeContext } from '@/Context/TradeContext';
+import { useTradeContext } from '@/app/Context/TradeContext';
 
 // Format numbers with a max # of decimals for clean display
 const formatNumber = (num: number | string | null | undefined, decimals = 2) => {

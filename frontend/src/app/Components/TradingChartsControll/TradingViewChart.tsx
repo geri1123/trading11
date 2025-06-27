@@ -18,12 +18,12 @@ interface SelectedData {
 }
 
 interface selectedPairProps {
-  selectedPair?: SelectedData | null;
+  selectedPair?: string;
 }
 
 const TradingViewChart: React.FC<selectedPairProps> = ({ selectedPair }) => {
   useEffect(() => {
-    const symbol = selectedPair?.pair.replace("/", "") || "USDAUD";
+    const symbol = selectedPair?.replace("/", "") || "USDAUD";
     const existingScript = document.getElementById("tradingview-widget-script");
     if (existingScript) existingScript.remove();
 
@@ -59,7 +59,7 @@ const TradingViewChart: React.FC<selectedPairProps> = ({ selectedPair }) => {
       const container = document.getElementById("tradingview_chart");
       if (container) container.innerHTML = "";
     };
-  }, [selectedPair?.pair]);
+  }, [selectedPair]);
 
   return (
     <div
