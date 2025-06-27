@@ -1,25 +1,15 @@
 "use client";
 
 import Image from "next/image";
-import { useCallback, useMemo } from "react";
+import { useMemo } from "react";
 import { usePairData } from "@/app/lib/liveStore";
-import { useVisiblePair } from "@/hooks/useVisiblePair";
 import PriceCell from "./PriceCell";
 
 interface RowProps {
   pair: string;
-  isSelected: boolean;
-  onSelect(pair: string): void;
 }
 
-export const VirtualPriceRow: React.FC<RowProps> = ({
-  pair,
-  isSelected,
-  onSelect,
-}) => {
-  // Note: useVisiblePair is a custom hook that manages the visibility state of pairs
-  useVisiblePair(pair);
-  // Fetch pair data using the custom hook
+export const VirtualPriceRow: React.FC<RowProps> = ({ pair }) => {
   const data = usePairData(pair);
 
   // helpers
@@ -63,7 +53,6 @@ export const VirtualPriceRow: React.FC<RowProps> = ({
       <td>
         <div className="flex items-center justify-between gap-1 min-w-[88px] py-2 pl-4">
           <PriceCell value={data?.a} />
-          <div className="h-[1rem] w-[2px] bg-gray-300" />
         </div>
       </td>
 
@@ -71,7 +60,6 @@ export const VirtualPriceRow: React.FC<RowProps> = ({
       <td>
         <div className="flex items-center justify-between gap-1 min-w-[88px] py-2 pl-4">
           <PriceCell value={data?.b} />
-          <div className="h-[1rem] w-[2px] bg-gray-300" />
         </div>
       </td>
 
@@ -81,7 +69,6 @@ export const VirtualPriceRow: React.FC<RowProps> = ({
           <p className="text-xs font-normal text-white">
             {data?.spread !== undefined ? data.spread.toFixed(5) : "-"}
           </p>
-          <div className="h-[1rem] w-[2px] bg-gray-300" />
         </div>
       </td>
 
@@ -89,14 +76,12 @@ export const VirtualPriceRow: React.FC<RowProps> = ({
       <td>
         <div className="flex items-center justify-between gap-1 min-w-[88px] py-2 pl-4">
           <p className="text-xs font-normal text-white">-</p>
-          <div className="h-[1rem] w-[2px] bg-gray-300" />
         </div>
       </td>
 
       <td>
         <div className="flex items-center justify-between gap-1 min-w-[88px] py-2 pl-4">
           <p className="text-xs font-normal text-white">-</p>
-          <div className="h-[1rem] w-[2px]" />
         </div>
       </td>
     </>

@@ -1,11 +1,11 @@
 "use client";
 import React from "react";
 import Image from "next/image";
-import { useVisiblePair } from "@/app/hooks/useVisiblePair";
 import { usePairData } from "@/app/lib/liveStore";
 import PriceCell from "./PriceCell";
 import { formatDate } from "@/Constants/date";
 import { useFloatingPnl } from "../hooks/useFloatingPnL";
+import { useEnsurePair } from "../Context/PriceProvider";
 
 const formatNumber = (n: any, d = 2) =>
   n == null || n === ""
@@ -26,8 +26,7 @@ const PositionRow: React.FC<Props> = ({
   handleClose,
 }) => {
   const pair = row.instrument;
-
-  useVisiblePair(pair);
+  useEnsurePair(pair);
   const data = usePairData(pair);
   const pnl = useFloatingPnl(row);
 

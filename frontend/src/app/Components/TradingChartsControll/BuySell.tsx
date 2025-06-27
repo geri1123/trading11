@@ -7,7 +7,7 @@ import Buysellextend from "@/Dialogs/Buysellextend";
 
 import { AuthContext, AuthContextType } from "@/app/Context/AuthContext";
 import { fetchOnce, usePairData, useUserWidgetData } from "@/app/lib/liveStore";
-import { useVisiblePair } from "@/app/hooks/useVisiblePair";
+import { useEnsurePair } from "@/app/Context/PriceProvider";
 
 interface LivePairData {
   a?: number;
@@ -24,8 +24,8 @@ interface BuySellProps {
 const BuySell: React.FC<BuySellProps> = ({ selectedPair }) => {
   const pair = selectedPair || "";
 
-  // make visible and Fetch pair data
-  useVisiblePair(pair);
+  // Fetch pair data using the custom hook
+  useEnsurePair(pair);
   const pairData = usePairData(pair);
 
   // Fetch top user widget data

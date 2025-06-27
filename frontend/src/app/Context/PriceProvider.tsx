@@ -4,11 +4,10 @@ import React, {
   createContext,
   useCallback,
   useEffect,
+  useMemo,
   useRef,
-  startTransition,
   useContext,
 } from "react";
-
 import { stomp } from "@/lib/stompClient";
 import {
   LivePairData,
@@ -16,125 +15,129 @@ import {
   updatePairs,
   updateWidget,
 } from "@/app/lib/liveStore";
-import {
-  addVisiblePair,
-  removeVisiblePair,
-  getVisiblePairs,
-} from "@/lib/visiblePairs";
 
-//  Context used by useVisiblePair / useEnsurePair
-interface Ctx {
-  markVisible(pair: string): void;
-  markHidden(pair: string): void;
-  ensurePair(pair: string | null): void;
+interface PriceCtx {
+  setAllPairs(pairs: string[]): void; // master filter list
+  setVisiblePairs(pairs: string[]): void; // rows currently on‑screen
+  ensurePair(pair: string | null): void; // explicit single‑pair guarantee
 }
-export const PriceContext = createContext<Ctx>({
-  markVisible: () => {},
-  markHidden: () => {},
+
+export const PriceContext = createContext<PriceCtx>({
+  setAllPairs: () => {},
+  setVisiblePairs: () => {},
   ensurePair: () => {},
 });
 
-//  Provider – handles pairs + widget
 export const PriceProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  // mutable refs
-  const subs = useRef<Record<string, () => void>>({});
-  const buffer = useRef<Record<string, LivePairData>>({});
-  const latestRef = useRef<Record<string, LivePairData>>({});
-  const rafId = useRef<number | null>(null);
+  const subs = useRef<Record<string, () => void>>({}); // pair → unsubscribe
+  const latest = useRef<Record<string, LivePairData>>({}); // last tick for each pair
+  const visible = useRef<Set<string>>(new Set()); // pairs currently on screen
+  const allPairs = useRef<Set<string>>(new Set()); // filter list
+  const sticky = useRef<Set<string>>(new Set()); // sticky pairs position table
 
-  // batching via Raf
+  const buffer = useRef<Record<string, LivePairData>>({});
+  const rafId = useRef<number | null>(null);
   const flush = () => {
     const chunk = buffer.current;
     buffer.current = {};
     rafId.current = null;
-    if (!Object.keys(chunk).length) return;
-    startTransition(() => updatePairs(chunk));
+    if (Object.keys(chunk).length) updatePairs(chunk);
   };
-  const scheduleFlush = () => {
+  const push = (pair: string, tick: LivePairData) => {
+    if (!visible.current.has(pair) && !sticky.current.has(pair)) return; // ignore off‑screen
+    buffer.current[pair] = tick;
     if (rafId.current === null) rafId.current = requestAnimationFrame(flush);
   };
 
-  // pair-level subscription
-  const subscribePair = async (pair: string) => {
-    if (subs.current[pair]) return;
+  // subscribe helper
+  const subscribePair = useCallback(async (pair: string) => {
+    if (subs.current[pair]) return; // already live
 
     await stomp.awaitConnected();
-    const client = stomp.getClient();
-    if (!client?.connected) return;
+    const cli = stomp.getClient();
+    if (!cli?.connected) return;
 
-    client.publish({
+    cli.publish({
       destination: "/app/trade-price",
       body: JSON.stringify([pair]),
     });
-
-    const sub = client.subscribe(`/user/queue/trade-price/${pair}`, (msg) => {
-      const payload: LivePairData = JSON.parse(msg.body);
-      latestRef.current[pair] = payload; // cache
-
-      if (getVisiblePairs().has(pair)) {
-        buffer.current[pair] = payload;
-        scheduleFlush();
-      }
+    const sub = cli.subscribe(`/user/queue/trade-price/${pair}`, (msg) => {
+      const tick: LivePairData = JSON.parse(msg.body);
+      latest.current[pair] = tick;
+      push(pair, tick);
     });
-
     subs.current[pair] = () => sub.unsubscribe();
-  };
-
-  // public helpers for rows
-  const markVisible = useCallback((pair: string) => {
-    addVisiblePair(pair);
-    subscribePair(pair);
-
-    const cached = latestRef.current[pair];
-    if (cached) startTransition(() => updatePairs({ [pair]: cached }));
   }, []);
 
-  const markHidden = useCallback((pair: string) => {
-    removeVisiblePair(pair);
+  // public setters
+  const setAllPairs = useCallback(
+    (list: string[]) => {
+      const next = new Set(list);
 
-    /* We keep subscriptions alive for a hot cache. Uncomment next two lines to free bandwidth. */
-    // subs.current[pair]?.();
-    // delete subs.current[pair];
-  }, []);
-
-  const ensurePair = useCallback((pair: string | null) => {
-    if (!pair) return;
-    subscribePair(pair);
-  }, []);
-
-  // User data widget subscription
-  useEffect(() => {
-    let unSub: undefined | (() => void);
-
-    const subWidget = async () => {
-      await stomp.awaitConnected();
-      const client = stomp.getClient();
-      if (!client?.connected) return;
-
-      // backend trigger (remove if not needed)
-      client.publish({
-        destination: "/app/user-live-top-widget",
-        body: "{}",
+      // subscribe new ones
+      list.forEach((pair) => {
+        if (!allPairs.current.has(pair)) subscribePair(pair);
       });
 
-      const widgetSub = client.subscribe(
-        "/user/queue/user-live-top-widget",
-        (msg) => {
-          const payload: TopWidgetData = JSON.parse(msg.body);
-          updateWidget(payload); // store + emit
+      // unsubscribe removed ones
+      allPairs.current.forEach((pair) => {
+        if (!next.has(pair)) {
+          subs.current[pair]?.();
+          delete subs.current[pair];
         }
-      );
+      });
 
-      return () => widgetSub.unsubscribe();
+      allPairs.current = next;
+    },
+    [subscribePair]
+  );
+
+  // set visible pairs, update only those that are already live
+  const setVisiblePairs = useCallback((list: string[]) => {
+    visible.current = new Set(list);
+    const chunk: Record<string, LivePairData> = {};
+    list.forEach((p) => {
+      if (latest.current[p]) chunk[p] = latest.current[p];
+    });
+    if (Object.keys(chunk).length) updatePairs(chunk);
+  }, []);
+
+  // Ensure a single pair stays streamed even if it's not in the table
+  const ensurePair = useCallback(
+    (pair: string | null) => {
+      if (!pair) return;
+      sticky.current.add(pair); // keep streaming even when off-screen
+      subscribePair(pair);
+      if (latest.current[pair]) updatePairs({ [pair]: latest.current[pair] });
+    },
+    [subscribePair]
+  );
+
+  // top‑widget live stream
+  useEffect(() => {
+    let unSub: (() => void) | undefined;
+
+    const subscribeWidget = async () => {
+      await stomp.awaitConnected();
+      const cli = stomp.getClient();
+      if (!cli?.connected) return;
+
+      cli.publish({ destination: "/app/user-live-top-widget", body: "{}" });
+      const s = cli.subscribe("/user/queue/user-live-top-widget", (m) =>
+        updateWidget(JSON.parse(m.body) as TopWidgetData)
+      );
+      unSub = () => s.unsubscribe();
     };
 
-    subWidget().then((u) => (unSub = u));
+    // Initial call
+    subscribeWidget();
 
+    // Reconnect handling
     const off = stomp.onReconnect(() => {
-      unSub?.();
-      subWidget().then((u) => (unSub = u));
+      unSub?.(); // cleanup old one
+      subscribeWidget();
     });
 
     return () => {
@@ -143,29 +146,27 @@ export const PriceProvider: React.FC<{ children: React.ReactNode }> = ({
     };
   }, []);
 
-  // reconnect handling for pairs
-  useEffect(() => {
+  // reconnect resilience for pair
+  useEffect((): any => {
     const off = stomp.onReconnect(() => {
+      // resubscribe all active pairs
       Object.values(subs.current).forEach((u) => u());
       subs.current = {};
-      Object.keys(latestRef.current).forEach((p) => subscribePair(p));
+      allPairs.current.forEach(subscribePair);
     });
+    return () => off();
+  }, [subscribePair]);
 
-    return () => {
-      off();
-      Object.values(subs.current).forEach((u) => u());
-      if (rafId.current !== null) cancelAnimationFrame(rafId.current);
-    };
-  }, []);
-
-  return (
-    <PriceContext.Provider value={{ markVisible, markHidden, ensurePair }}>
-      {children}
-    </PriceContext.Provider>
+  // expose ctx value
+  const ctx = useMemo<PriceCtx>(
+    () => ({ setAllPairs, setVisiblePairs, ensurePair }),
+    [setAllPairs, setVisiblePairs, ensurePair]
   );
+
+  return <PriceContext.Provider value={ctx}>{children}</PriceContext.Provider>;
 };
 
-/** Hook: guarantee a pair is live-streamed (no visibility semantics) */
+// Convenience hook so other components can call `useEnsurePair("EUR/USD")`.
 export const useEnsurePair = (pair: string | null) => {
   const { ensurePair } = useContext(PriceContext);
   useEffect(() => {

@@ -16,14 +16,9 @@ type Listener = () => void;
 const listeners = new Set<Listener>();
 
 const state = {
-  // all streaming pairs
   pairs: {} as Record<string, LivePairData>,
-  // live top-widget payload
   widget: null as TopWidgetData | null,
 };
-
-console.log(state);
-
 
 // helpers
 const subscribe = (list: Listener) => {
@@ -32,8 +27,15 @@ const subscribe = (list: Listener) => {
 };
 const emit = () => listeners.forEach((list) => list());
 
+//  Update pairs in the store - This is called by the STOMP client when a new message arrives
 export const updatePairs = (chunk: Record<string, LivePairData>) => {
   Object.assign(state.pairs, chunk);
+  emit();
+};
+
+//  Update the top-widget data in the store - This is called by the STOMP client when a new message arrives
+export const updateWidget = (payload: TopWidgetData) => {
+  state.widget = payload;
   emit();
 };
 
@@ -45,7 +47,7 @@ export const usePairData = (pair: string) =>
     () => null,
   );
 
-//  One-shot snapshot helper
+// Hook - One-shot snapshot helper
 export const fetchOnce = async (
   pair: string,
 ): Promise<LivePairData | null> => {
@@ -81,11 +83,7 @@ export const fetchOnce = async (
   });
 };
 
-export const updateWidget = (payload: TopWidgetData) => {
-  state.widget = payload;
-  emit();
-};
-
+// Hook – re-renders only when the top-widget data changes
 export const useUserWidgetData = () =>
   useSyncExternalStore(
     subscribe,
