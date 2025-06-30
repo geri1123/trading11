@@ -4,7 +4,7 @@ import Image from 'next/image';
 import { useToggleShow } from '@/UseToggleState/UseToggleShow';
 import { formatDate } from '@/Constants/date';
 // import ModifyDialog from '@/Dialogs/ModifyDialog';
-import { useTradeContext  } from '@/Context/TradeContext';
+import { useTradeContext  } from '@/app/Context/TradeContext';
 import PartialDialog from '@/Dialogs/PartialDialog';
 
 

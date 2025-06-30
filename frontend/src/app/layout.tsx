@@ -1,8 +1,8 @@
-
 import type { Metadata } from "next";
 import "./globals.css";
-import { AuthProvider } from "@/Context/AuthContext";
-import { TradeProvider } from "@/Context/TradeContext";
+import { AuthProvider } from "@/app/Context/AuthContext";
+import { TradeProvider } from "@/app/Context/TradeContext";
+import { PriceProvider } from "./Context/PriceProvider";
 
 export const metadata: Metadata = {
   title: "TREADING ELEVEN",
@@ -18,9 +18,9 @@ export default function RootLayout({
     <html lang="en">
       <body className="App bg-black-700">
         <AuthProvider>
-          <TradeProvider>
-            {children}
-          </TradeProvider>
+          <PriceProvider>
+            <TradeProvider>{children}</TradeProvider>
+          </PriceProvider>
         </AuthProvider>
       </body>
     </html>

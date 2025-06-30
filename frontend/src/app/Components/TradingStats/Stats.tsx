@@ -1,38 +1,48 @@
-import React, { useContext } from 'react';
-import { AuthContext } from '@/Context/AuthContext';
+import { useUserWidgetData } from "@/app/lib/liveStore";
+import React from "react";
+
 interface Stat {
   id: string;
-  balance: string;
+  balance: number | null;
 }
 
-
-
 const Stats: React.FC = () => {
-  const {user}=useContext(AuthContext)!;
+  const widgetData = useUserWidgetData();
+
   const stats: Stat[] = [
-  { id: 'Balance', balance: `${user?.balance}` },
-  { id: 'Profit & Loss', balance: ' -$40.89' },
-  { id: 'Equity', balance: '$9951.37' },
-  { id: 'Margin Used', balance: ' $44.59280' },
-  { id: 'Margin Available', balance: '$9906.78' },
-  { id: 'Margin Level', balance: '22316.09%' },
-];
+    { id: "Balance", balance: widgetData?.balance || null },
+    { id: "Profit & Loss", balance: widgetData?.totalProfitLoss || null },
+    { id: "Equity", balance: widgetData?.totalEquity || null },
+    { id: "Margin Used", balance: widgetData?.usedMargin || null },
+    {
+      id: "Margin Available",
+      balance: widgetData?.availableMargin || null,
+    },
+    { id: "Margin Level", balance: widgetData?.marginLevel || null },
+  ];
+
   return (
-    <div className="grid grid-cols-3 xl:flex items-center lg:px-0 lg:py-0 flex items-center justify-center rounded-20 gap-2 xl:gap-3 lg:gap-3">
-      {stats.map((e, i) => (
+    <div className="grid-cols-3 xl:flex lg:px-0 lg:py-0 flex items-center justify-center rounded-20 gap-2 xl:gap-3 lg:gap-3">
+      {stats.map((head, i) => (
         <div
           key={i}
-          className="trading-nav-overview flex flex-col items-start justify-center px-3 py-2 transition-all duration-300 ease-in-out transform hover:scale-[0.97] cursor-pointer hover:translate-x-[-1px] hover:translate-y-[-1px] hover:rotate-[0deg] hover:skew-x-[0deg] hover:skew-y-[0deg] bg-black-700 border-[1px] border-green-10 rounded-xl"
+          className="trading-nav-overview flex flex-col items-start justify-center px-3 py-2 bg-black-700 rounded-xl"
         >
-          <h6 className="lg:text-[10px] whitespace-nowrap text-[10px] font-medium tracking-wide 3xl:text-[14px] text-white uppercase xl:pb-[5px] lg:pb-[5px]">
-            {e.id}
+          <h6 className="lg:text-[10px] whitespace-nowrap text-[10px] font-medium tracking-wide 3xl:text-[14px] text-white uppercase xl:pb-[5px] lg:pb-[5px] opacity-70">
+            {head.id}
           </h6>
           <p
-            className={`leading-none lg:text-sm text-sm xl:text-sm 3xl:text-base font-medium text-red-400 ${
-              e.id === 'Profit & Loss' ? 'text-red-400' : 'text-white'
+            className={`leading-none lg:text-sm text-sm xl:text-sm 3xl:text-base font-medium text-white ${
+              head.balance! < 0 && "!text-red-400"
+            } ${
+              head.id == "Profit & Loss" &&
+              head.balance! > 0 &&
+              "!text-green-400"
             }`}
           >
-            {e.balance}
+            {head.id != "Margin Level" && <span className="opacity-70">$</span>}
+            {head.balance ? Math.abs(head.balance).toFixed(2) : "0.00"}
+            {head.id == "Margin Level" && <span className="opacity-70">%</span>}
           </p>
         </div>
       ))}

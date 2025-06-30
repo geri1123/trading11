@@ -1,38 +1,93 @@
-import React, { useContext, useState } from 'react';
-import Image from 'next/image';
-import BuyDialog from '@/Dialogs/BuyDialog';
-import { useToggleShow } from '@/UseToggleState/UseToggleShow';
-import SellDialog from '@/Dialogs/SellDialog';
-import Buysellextend from "@/Dialogs/Buysellextend"
+import React, { useContext, useEffect, useMemo, useState } from "react";
+import Image from "next/image";
+import BuyDialog from "@/Dialogs/BuyDialog";
+import { useToggleShow } from "@/UseToggleState/UseToggleShow";
+import SellDialog from "@/Dialogs/SellDialog";
+import Buysellextend from "@/Dialogs/Buysellextend";
 
-import { AuthContext, AuthContextType } from '@/Context/AuthContext';
-interface SelectedData {
-  pair: string;
-  ask: number;
-  bid: number;
-  spread: number;
-  dayHigh: number;
-  dayLow: number;
+import { AuthContext, AuthContextType } from "@/app/Context/AuthContext";
+import { fetchOnce, usePairData, useUserWidgetData } from "@/app/lib/liveStore";
+import { useEnsurePair } from "@/app/Context/PriceProvider";
+
+interface LivePairData {
+  a?: number;
+  b?: number;
+  spread?: number;
 }
 
-type DialogType = 'buy' | 'sell' | 'extand' | null;
+type DialogType = "buy" | "sell" | "extand" | null;
 
 interface BuySellProps {
-  data?: SelectedData | null; 
+  selectedPair?: string;
 }
 
+const BuySell: React.FC<BuySellProps> = ({ selectedPair }) => {
+  const pair = selectedPair || "";
 
-const BuySell: React.FC<BuySellProps> = ({ data }) => {
+  // Fetch pair data using the custom hook
+  useEnsurePair(pair);
+  const pairData = usePairData(pair);
+
+  // Fetch top user widget data
+  const widgetData = useUserWidgetData();
+
+  // base pair if cross pair is selected
+  const basePair = useMemo(() => {
+    if (!selectedPair) return "";
+    const [base, quote] = selectedPair.split("/");
+    const baseUsdPair =
+      base !== "USD" && quote !== "USD" ? `${base}/USD` : null;
+
+    return baseUsdPair ? baseUsdPair : "";
+  }, [selectedPair]);
+
+  // Fetch base data only if basePair is defined
+  const [baseData, setBaseData] = useState<LivePairData | null>(null);
+
+  // Effect to fetch base data when basePair changes
+  useEffect(() => {
+    let cancelled = false;
+    if (!basePair) {
+      setBaseData(null);
+      return;
+    }
+    fetchOnce(basePair).then((data) => {
+      if (!cancelled) setBaseData(data);
+    });
+    return () => {
+      cancelled = true; // prevent stale setState warnings
+    };
+  }, [basePair]);
+
+  // Prepare data for rendering
+  const data: any = useMemo(() => {
+    if (!pairData || !selectedPair) return null;
+
+    return {
+      pair: selectedPair,
+      ask: pairData.a ?? 0,
+      bid: pairData.b ?? 0,
+      spread: pairData.spread ?? 0,
+      dayHigh: 0,
+      dayLow: 0,
+      baseUsdRate: baseData?.a ?? null,
+    };
+  }, [pairData, baseData, selectedPair]);
+
   const [value, setValue] = useState<number>(0.01);
   const [activeDialog, setActiveDialog] = useState<DialogType>(null);
-  const { isOpen, toggleDropdown, closeDropdown, dropdownref, isClosing } = useToggleShow();
- const { user } = useContext(AuthContext) as AuthContextType;
+  const { isOpen, toggleDropdown, closeDropdown, dropdownref, isClosing } =
+    useToggleShow();
+  const { user } = useContext(AuthContext) as AuthContextType;
+
   // Don't render if no data is provided
-  if (!data) {
+  if (!selectedPair || !data || !data.pair) {
     return (
       <div className="w-full xl:p-3 xxl:p-3.5 p-2.5 overflow-hidden bg-black-300 rounded-20">
         <div className="flex items-center justify-center h-32">
-          <p className="text-gray-400 text-sm">Select a currency pair to start trading</p>
+          <p className="text-gray-400 text-sm">
+            Select a currency pair to start trading
+          </p>
         </div>
       </div>
     );
@@ -59,90 +114,113 @@ const BuySell: React.FC<BuySellProps> = ({ data }) => {
   };
 
   const getCurrencyFlags = (pair: string) => {
-    if (!pair) return { base: '/Images/flags/gbp.svg', quote: '/Images/flags/usd.svg' };
-    const currencies = pair.split('/');
+    if (!pair)
+      return { base: "/Images/flags/gbp.svg", quote: "/Images/flags/usd.svg" };
+    const currencies = pair.split("/");
     const base = currencies[0]?.toLowerCase();
     const quote = currencies[1]?.toLowerCase();
     const flagMap: Record<string, string> = {
-      'gbp': '/Images/flags/gbp.svg',
-      'usd': '/Images/flags/usd.svg',
-      'eur': '/Images/flags/eur.svg',
-      'jpy': '/Images/flags/jpy.svg',
-      'cad': '/Images/flags/cad.svg',
-      'aud': '/Images/flags/aud.svg',
-      'chf': '/Images/flags/chf.svg',
-      'nzd': '/Images/flags/nzd.svg',
-      'nok': '/Images/flags/nok.svg',
-      'sek': '/Images/flags/sek.svg',
-      'dkk': '/Images/flags/dkk.svg',
-      'czk': '/Images/flags/czk.svg',
-      'hkd': '/Images/flags/hkd.svg',
-      'mxn': '/Images/flags/mxn.svg',
-      'huf': '/Images/flags/huf.svg',
-      'pln': '/Images/flags/pln.svg',
-      'try': '/Images/flags/try.svg',
-      'zar': '/Images/flags/zar.svg',
-      'rub': '/Images/flags/rub.svg',
-      'ils': '/Images/flags/ils.svg',
-      'sgd': '/Images/flags/sgd.svg',
-      'cnh': '/Images/flags/cnh.svg',
+      gbp: "/Images/flags/gbp.svg",
+      usd: "/Images/flags/usd.svg",
+      eur: "/Images/flags/eur.svg",
+      jpy: "/Images/flags/jpy.svg",
+      cad: "/Images/flags/cad.svg",
+      aud: "/Images/flags/aud.svg",
+      chf: "/Images/flags/chf.svg",
+      nzd: "/Images/flags/nzd.svg",
+      nok: "/Images/flags/nok.svg",
+      sek: "/Images/flags/sek.svg",
+      dkk: "/Images/flags/dkk.svg",
+      czk: "/Images/flags/czk.svg",
+      hkd: "/Images/flags/hkd.svg",
+      mxn: "/Images/flags/mxn.svg",
+      huf: "/Images/flags/huf.svg",
+      pln: "/Images/flags/pln.svg",
+      try: "/Images/flags/try.svg",
+      zar: "/Images/flags/zar.svg",
+      rub: "/Images/flags/rub.svg",
+      ils: "/Images/flags/ils.svg",
+      sgd: "/Images/flags/sgd.svg",
+      cnh: "/Images/flags/cnh.svg",
     };
     return {
-      base: flagMap[base] || '/Images/flags/gbp.svg',
-      quote: flagMap[quote] || '/Images/flags/usd.svg'
+      base: flagMap[base] || "/Images/flags/gbp.svg",
+      quote: flagMap[quote] || "/Images/flags/usd.svg",
     };
   };
 
   const currencyFlags = getCurrencyFlags(data.pair);
 
+  const calculateMargin = (price: number) => {
+    const lotSize = 100000;
+    const [base, quote] = data.pair.split("/");
 
-const lotSize = 100000;
-const userBalance = user?.balance ?? 0;
+    const pairSpecific =
+      quote == "USD" ? price : base != "USD" ? data.baseUsdRate ?? 1 : 1;
 
-const calculateMargin = (price: number) => {
-  const leverageValue = user?.leverage ?? 100;
-  const positionSize = value * lotSize;
-  const margin = (positionSize * price) / leverageValue;
+    const exposure = value * lotSize * pairSpecific;
+    const leverage = user?.leverage ?? 100;
+    const margin = exposure / leverage;
 
-  const marginPercentage = userBalance > 0 
-    ? (margin / userBalance) * 100 
-    : 0;
+    const marginAvailable = widgetData?.availableMargin || 0;
 
-  return {
-    amount: margin.toFixed(2),
-    percentage: marginPercentage.toFixed(2),
+    const marginPercentage =
+      marginAvailable > 0 ? (margin / marginAvailable) * 100 : 100;
+
+    return {
+      amount: margin.toFixed(2),
+      percentage: marginPercentage.toFixed(2),
+    };
   };
-};
-const marginInfo = calculateMargin(data.ask);
+  const marginInfo = calculateMargin(data.ask);
+
   return (
-    <div className={`w-full xl:p-3 xxl:p-3.5 p-2.5 overflow-hidden bg-black-300 rounded-20`}>
+    <div
+      className={`w-full xl:p-3 xxl:p-3.5 p-2.5 overflow-hidden bg-black-300 rounded-20`}
+    >
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2.5">
-          <Image src={currencyFlags.base} className='h-3.5 w-3.5 rounded-full' alt="base currency" width={16} height={16} />
+          <Image
+            src={currencyFlags.base}
+            className="h-3.5 w-3.5 rounded-full"
+            alt="base currency"
+            width={16}
+            height={16}
+          />
           <p className="leading-none text-white text-14px xl:text-[12px] pt-[2px] font-semibold">
             {data.pair}
           </p>
-          <Image src={currencyFlags.quote} className='h-3.5 w-3.5 rounded-full' alt="quote currency" width={16} height={16} />
+          <Image
+            src={currencyFlags.quote}
+            className="h-3.5 w-3.5 rounded-full"
+            alt="quote currency"
+            width={16}
+            height={16}
+          />
         </div>
         <button
-          onClick={() => handleOpenDialog('extand')}
+          onClick={() => handleOpenDialog("extand")}
           className="xl:p-1 xxl:p-3 p-2 rounded-lg bg-black-700 open-advance-tab"
         >
-          <Image src="/Images/Icons/chevron-down.svg" alt="arrow-icon" className="rotate-180" width={16} height={16} />
+          <Image
+            src="/Images/Icons/chevron-down.svg"
+            alt="arrow-icon"
+            width={16}
+            height={16}
+            className="rotate-180 w-4 h-4"
+          />
         </button>
       </div>
 
       <div className="w-full h-[1px] bg-white bg-opacity-40 my-1.5"></div>
 
-     
-
       <div className="flex items-start justify-between gap-4">
         <div className="w-3/12 flex flex-col gap-1 ">
           <p className="text-sm font-medium text-red-400">
-            {data.bid ? data.bid.toFixed(5) : '-'}
+            {data.bid ? data.bid.toFixed(5) : "-"}
           </p>
           <button
-            onClick={() => handleOpenDialog('sell')}
+            onClick={() => handleOpenDialog("sell")}
             className={`w-full p-3 text-base font-normal leading-none text-white rounded-lg mt-2 open-sell-popup transition-opacity bg-red-400 hover:bg-red-500`}
           >
             Sell
@@ -150,20 +228,29 @@ const marginInfo = calculateMargin(data.ask);
         </div>
 
         <div className="w-6/12 flex flex-col gap-1">
-          <p className="text-sm xl:text-sm xxl:text-sm font-semibold text-white">
-            Margin
-          <span className="pl-1 xl:text-sm text-[11px] font-medium">
-  ${marginInfo.amount} / {marginInfo.percentage}%
-</span>
+          <p className="text-sm xl:text-sm xxl:text-sm font-semibold text-white text-center">
+            Margin ~
+            <span className="pl-1 text-xs xl:text-sm font-medium">
+              ${marginInfo.amount}
+            </span>
+            <span className="pl-1 text-xs xl:text-sm font-medium opacity-60">
+              ({marginInfo.percentage}%)
+            </span>
           </p>
-          <div className="w-full p-1 flex border rounded-lg bg-black-700 border-green-10 mt-1 flex items-center">
+          <div className="w-full p-1 border rounded-lg bg-black-700 border-green-10 mt-1 flex items-center">
             <button
               className="border-none flex items-center justify-center w-1/6 outline-none"
               id="margin-decrease"
               onClick={decreaseValue}
               disabled={value <= 0.01}
             >
-              <Image src="/Images/Icons/minus.svg" alt="minus-icon" width={16} height={16} />
+              <Image
+                src="/Images/Icons/minus.svg"
+                alt="minus-icon"
+                width={16}
+                height={16}
+                className="w-4 h-4"
+              />
             </button>
             <input
               type="text"
@@ -176,17 +263,23 @@ const marginInfo = calculateMargin(data.ask);
               className="border-none flex items-center justify-center w-1/6 outline-none"
               onClick={increaseValue}
             >
-              <Image src="/Images/Icons/plus.svg" alt="plus-icon" width={16} height={16} />
+              <Image
+                src="/Images/Icons/plus.svg"
+                alt="plus-icon"
+                width={16}
+                height={16}
+                className="w-4 h-4"
+              />
             </button>
           </div>
         </div>
 
         <div className="w-3/12 flex flex-col gap-1">
           <p className="text-sm font-medium text-green-300 text-end">
-            {data.ask ? data.ask.toFixed(5) : '-'}
+            {data.ask ? data.ask.toFixed(5) : "-"}
           </p>
           <button
-            onClick={() => handleOpenDialog('buy')}
+            onClick={() => handleOpenDialog("buy")}
             className={`w-full p-3 text-base font-normal leading-none text-bodyBg rounded-lg mt-2 open-buy-popup transition-opacity bg-green-400 hover:bg-green-500`}
           >
             Buy
@@ -194,31 +287,59 @@ const marginInfo = calculateMargin(data.ask);
         </div>
       </div>
 
-      {isOpen && activeDialog === 'extand' && (
-        <div className={`fixed h-screen top-0 left-0 w-full bg-black-700 bg-opacity-70 flex items-center justify-center z-50 ${isClosing ? 'animate-fadeOut' : 'animate-fadeIn'}`}>
+      {isOpen && activeDialog === "extand" && (
+        <div
+          className={`fixed h-screen top-0 left-0 w-full bg-black-700 bg-opacity-70 flex items-center justify-center z-50 ${
+            isClosing ? "animate-fadeOut" : "animate-fadeIn"
+          }`}
+        >
           <div
             ref={dropdownref}
-            className={`z-50 fixed bottom-0 left-0 md:relative xsm:bottom-0 xsm:left-0 lg:relative ${isClosing ? "lg:animate-slideUp animate-slideUpSmall" : "lg:animate-slideDown animate-slideDownSmall"}`}
+            className={`z-50 fixed bottom-0 left-0 md:relative xsm:bottom-0 xsm:left-0 lg:relative ${
+              isClosing
+                ? "lg:animate-slideUp animate-slideUpSmall"
+                : "lg:animate-slideDown animate-slideDownSmall"
+            }`}
           >
-            <Buysellextend data={data} onClose={closeDropdown} dropdownref={dropdownref} />
+            <Buysellextend
+              data={data}
+              onClose={closeDropdown}
+              dropdownref={dropdownref}
+            />
           </div>
         </div>
       )}
-      {isOpen && activeDialog === 'buy' && (
-        <div className={`fixed h-screen top-0 left-0 w-full h-full bg-black-700 bg-opacity-70 flex items-center justify-center z-50 ${isClosing ? 'animate-fadeOut' : 'animate-fadeIn'}`}>
+      {isOpen && activeDialog === "buy" && (
+        <div
+          className={`fixed top-0 left-0 w-full h-full bg-black-700 bg-opacity-70 flex items-center justify-center z-50 ${
+            isClosing ? "animate-fadeOut" : "animate-fadeIn"
+          }`}
+        >
           <div
             ref={dropdownref}
-            className={`z-50 fixed bottom-0 left-0 md:relative xsm:bottom-0 xsm:left-0 lg:relative ${isClosing ? "lg:animate-slideUp animate-slideUpSmall" : "lg:animate-slideDown animate-slideDownSmall"}`}
+            className={`z-50 fixed bottom-0 left-0 md:relative xsm:bottom-0 xsm:left-0 lg:relative ${
+              isClosing
+                ? "lg:animate-slideUp animate-slideUpSmall"
+                : "lg:animate-slideDown animate-slideDownSmall"
+            }`}
           >
-            <BuyDialog value={value} onClose={closeDropdown} data={data}   />
+            <BuyDialog value={value} onClose={closeDropdown} data={data} />
           </div>
         </div>
       )}
-      {isOpen && activeDialog === 'sell' && (
-        <div className={`fixed h-full h-screen top-0 left-0 w-full bg-black-700 bg-opacity-70 flex items-center justify-center z-50 ${isClosing ? 'animate-fadeOut' : 'animate-fadeIn'}`}>
+      {isOpen && activeDialog === "sell" && (
+        <div
+          className={`fixed h-screen top-0 left-0 w-full bg-black-700 bg-opacity-70 flex items-center justify-center z-50 ${
+            isClosing ? "animate-fadeOut" : "animate-fadeIn"
+          }`}
+        >
           <div
             ref={dropdownref}
-            className={`z-50 fixed bottom-0 left-0 md:relative xsm:bottom-0 xsm:left-0 lg:relative ${isClosing ? "lg:animate-slideUp animate-slideUpSmall" : "lg:animate-slideDown animate-slideDownSmall"}`}
+            className={`z-50 fixed bottom-0 left-0 md:relative xsm:bottom-0 xsm:left-0 lg:relative ${
+              isClosing
+                ? "lg:animate-slideUp animate-slideUpSmall"
+                : "lg:animate-slideDown animate-slideDownSmall"
+            }`}
           >
             <SellDialog value={value} data={data} onClose={closeDropdown} />
           </div>
@@ -229,19 +350,3 @@ const marginInfo = calculateMargin(data.ask);
 };
 
 export default BuySell;
-
-
-
-// const getSpreadInfo = () => {
-  //   if (!selectedData || !selectedData.ask || !selectedData.bid) return { spread: '-', percentage: '-' };
-  //   const spread = selectedData.ask - selectedData.bid;
-  //   const percentage = ((spread / selectedData.ask) * 100).toFixed(4);
-  //   return {
-  //     spread: spread.toFixed(5),
-  //     percentage: `${percentage}%`
-  //   };
-  // };
-   {/* <div className="flex items-center justify-between mb-2 text-xs text-gray-400">
-        <span>Spread: {spreadInfo.spread}</span>
-        <span>({spreadInfo.percentage})</span>
-      </div> */}

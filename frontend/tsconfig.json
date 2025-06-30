@@ -22,7 +22,7 @@
        "@/Content/*": ["src/app/Content/*"],
        "@/Constants/*": ["src/app/Constants/*"],
       "@/layouts/*": ["src/app/layouts/*"],
-      "@/context/*": ["src/Context/*"],
+      "@/context/*": ["src/app/Context/*"],
       "@/lib/*": ["src/app/lib/*"],
       "@/TradingStats/*": ["src/app/TradingStats/*"],
       "@/actions/*": ["src/app/actions/*"],
